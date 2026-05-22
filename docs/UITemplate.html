@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARCHIVE // Collectible Figures</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Oswald', 'sans-serif'],
+                    },
+                    colors: {
+                        accent: '#991b1b', // Deep cinematic red
+                        'accent-hover': '#7f1d1d',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f4f4f5; }
+        ::-webkit-scrollbar-thumb { background: #d4d4d8; }
+        ::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+        
+        /* Utility to hide scrollbar but allow scrolling in filters */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .fade-in { animation: fadeIn 0.4s ease-in-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-white text-zinc-900 font-sans antialiased flex flex-col min-h-screen selection:bg-zinc-900 selection:text-white">
+
+    <header class="fixed w-full top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-zinc-200 transition-all duration-300" id="main-header">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden p-2 -ml-2 text-zinc-900 hover:text-accent transition-colors" onclick="toggleMobileMenu()">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+
+                <!-- Logo -->
+                <a href="#" class="flex items-center gap-2 group" onclick="app.navigate('home')">
+                    <span class="font-display font-bold text-2xl tracking-tighter uppercase">Archive</span>
+                    <span class="w-1 h-5 bg-accent hidden sm:block"></span>
+                    <span class="font-display text-sm tracking-widest text-zinc-500 uppercase mt-1 hidden sm:block">Collectibles</span>
+                </a>
+
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#" class="font-display text-sm uppercase tracking-widest hover:text-accent transition-colors py-2" onclick="app.navigate('plp', 'new')">New Drops</a>
+                    <a href="#" class="font-display text-sm uppercase tracking-widest hover:text-accent transition-colors py-2" onclick="app.navigate('plp', 'batman')">Batman / DC</a>
+                    <a href="#" class="font-display text-sm uppercase tracking-widest hover:text-accent transition-colors py-2" onclick="app.navigate('plp', 'anime')">Anime</a>
+                    <a href="#" class="font-display text-sm uppercase tracking-widest hover:text-accent transition-colors py-2" onclick="app.navigate('plp', 'all')">All Figures</a>
+                </nav>
+
+                <!-- Icons -->
+                <div class="flex items-center space-x-6">
+                    <button class="text-zinc-900 hover:text-accent transition-colors hidden sm:block">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                    <a href="#" class="text-zinc-900 hover:text-accent transition-colors" onclick="app.navigate('cart')">
+                        <div class="relative">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            <span id="cart-count" class="absolute -top-2 -right-2 bg-accent text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center hidden">0</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu" class="fixed inset-0 bg-white z-40 hidden flex-col pt-24 px-6 border-t border-zinc-200">
+            <button class="absolute top-6 right-6 text-2xl text-zinc-900" onclick="toggleMobileMenu()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <nav class="flex flex-col space-y-6">
+                <a href="#" class="font-display text-2xl uppercase tracking-widest border-b border-zinc-100 pb-4" onclick="app.navigate('plp', 'new'); toggleMobileMenu()">New Drops</a>
+                <a href="#" class="font-display text-2xl uppercase tracking-widest border-b border-zinc-100 pb-4" onclick="app.navigate('plp', 'batman'); toggleMobileMenu()">Batman / DC</a>
+                <a href="#" class="font-display text-2xl uppercase tracking-widest border-b border-zinc-100 pb-4" onclick="app.navigate('plp', 'anime'); toggleMobileMenu()">Anime</a>
+                <a href="#" class="font-display text-2xl uppercase tracking-widest border-b border-zinc-100 pb-4" onclick="app.navigate('plp', 'all'); toggleMobileMenu()">All Figures</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main id="app-container" class="flex-grow pt-20">
+        <!-- Views will be injected here -->
+    </main>
+
+    <footer class="bg-zinc-950 text-white border-t border-zinc-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+                <div class="col-span-1 md:col-span-2">
+                    <span class="font-display font-bold text-2xl tracking-tighter uppercase block mb-4">Archive</span>
+                    <p class="text-zinc-400 text-sm max-w-md leading-relaxed">
+                        Curated display collectibles for the discerning enthusiast. We specialize in authentic, highly detailed figures with cinematic presence. 
+                    </p>
+                    <div class="mt-6 flex space-x-4">
+                        <a href="#" class="text-zinc-400 hover:text-white transition-colors"><i class="fa-brands fa-instagram text-xl"></i></a>
+                        <a href="#" class="text-zinc-400 hover:text-white transition-colors"><i class="fa-brands fa-x-twitter text-xl"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-display uppercase tracking-widest text-sm text-zinc-500 mb-6">Customer Care</h4>
+                    <ul class="space-y-3 text-sm text-zinc-300">
+                        <li><a href="#" class="hover:text-white transition-colors">Shipping & Returns</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Authenticity Guarantee</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Pre-order Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-display uppercase tracking-widest text-sm text-zinc-500 mb-6">Newsletter</h4>
+                    <p class="text-sm text-zinc-300 mb-4">Join for limited drop notifications.</p>
+                    <form class="flex border-b border-zinc-700 pb-2 focus-within:border-white transition-colors">
+                        <input type="email" placeholder="EMAIL ADDRESS" class="bg-transparent w-full text-sm outline-none text-white placeholder-zinc-600 font-display tracking-widest">
+                        <button type="button" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-arrow-right"></i></button>
+                    </form>
+                </div>
+            </div>
+            <div class="mt-16 pt-8 border-t border-zinc-800 flex flex-col md:flex-row justify-between items-center text-xs text-zinc-500">
+                <p>&copy; 2026 ARCHIVE COLLECTIBLES. ALL RIGHTS RESERVED.</p>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <span>SECURE CHECKOUT</span>
+                    <i class="fa-brands fa-cc-visa text-lg"></i>
+                    <i class="fa-brands fa-cc-mastercard text-lg"></i>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mock Product Data
+        const products = [
+            {
+                id: '1',
+                name: 'The Dark Knight: Premium Format',
+                franchise: 'DC Comics',
+                category: 'batman',
+                price: 650.00,
+                scale: '1/4 Scale',
+                brand: 'Prime Studios',
+                status: 'pre-order',
+                isNew: true,
+                images: [
+                    'https://placehold.co/800x1000/1a1a1a/ffffff?text=Dark+Knight+1/4',
+                    'https://placehold.co/800x1000/222222/dddddd?text=Detail+Shot',
+                    'https://placehold.co/800x1000/111111/ffffff?text=Base+Details'
+                ],
+                description: 'A cinematic masterpiece capturing the brooding essence of Gotham\'s protector. This premium format figure features an incredibly detailed tailored fabric suit, interchangeable expressions, and a massive gargoyle base inspired by the architectural gothic style of the films.',
+                specs: {
+                    materials: 'Polystone, Fabric, PVC',
+                    dimensions: 'H: 24" x W: 12" x D: 10"',
+                    release: 'Est. Q4 2026',
+                    edition: 'Limited to 1000 pieces globally'
+                }
+            },
+            {
+                id: '2',
+                name: 'Berserker Armor Guts',
+                franchise: 'Berserk',
+                category: 'anime',
+                price: 1200.00,
+                scale: '1/3 Scale',
+                brand: 'Dark Art Studios',
+                status: 'waitlist',
+                isNew: false,
+                images: [
+                    'https://placehold.co/800x1000/2c2c2c/e0e0e0?text=Guts+Berserker'
+                ],
+                description: 'The ultimate representation of the Black Swordsman. Featuring LED light-up eyes in the helm, real metal chains, and a brutal base littered with defeated apostles.',
+                specs: {
+                    materials: 'Polystone, Metal, LED',
+                    dimensions: 'H: 38" x W: 25" x D: 22"',
+                    release: 'Waitlist Open',
+                    edition: 'Limited to 500 pieces'
+                }
+            },
+            {
+                id: '3',
+                name: 'Cyber Ninja V',
+                franchise: 'Cyberpunk 2077',
+                category: 'gaming',
+                price: 280.00,
+                scale: '1/6 Scale',
+                brand: 'Hot Toys',
+                status: 'in-stock',
+                isNew: true,
+                images: [
+                    'https://placehold.co/600x800/1e293b/94a3b8?text=Cyber+Ninja'
+                ],
+                description: 'Highly articulated 1/6 scale figure featuring custom neon-accented clothing, multiple cybernetic weapons, and a dynamic display stand.',
+                specs: {
+                    materials: 'PVC, ABS, Fabric',
+                    dimensions: 'H: 12"',
+                    release: 'Available Now',
+                    edition: 'Standard'
+                }
+            },
+            {
+                id: '4',
+                name: 'Joker: Arkham Asylum',
+                franchise: 'DC Comics',
+                category: 'batman',
+                price: 320.00,
+                scale: '1/6 Scale',
+                brand: 'Hot Toys',
+                status: 'in-stock',
+                isNew: false,
+                images: [
+                    'https://placehold.co/600x800/2d1b2e/d8b4e2?text=Arkham+Joker'
+                ],
+                description: 'The clown prince of crime as seen in the critically acclaimed game. Includes multiple laughing head sculpts, detailed tailored suit, and various lethal joy-buzzers.',
+                specs: {
+                    materials: 'PVC, Fabric',
+                    dimensions: 'H: 12.5"',
+                    release: 'Available Now',
+                    edition: 'Standard'
+                }
+            },
+            {
+                id: '5',
+                name: 'Goku: Ultra Instinct',
+                franchise: 'Dragon Ball Super',
+                category: 'anime',
+                price: 150.00,
+                scale: 'Non-Scale',
+                brand: 'Tamashii Nations',
+                status: 'in-stock',
+                isNew: false,
+                images: [
+                    'https://placehold.co/600x800/e0f2fe/0369a1?text=Ultra+Instinct'
+                ],
+                description: 'Capture the peak of martial arts prowess with this highly articulated figure featuring pearlescent hair paint and aura effect parts.',
+                specs: {
+                    materials: 'PVC, ABS',
+                    dimensions: 'H: 6.5"',
+                    release: 'Available Now',
+                    edition: 'Standard'
+                }
+            },
+            {
+                id: '6',
+                name: 'Iron Man Mark LXXXV',
+                franchise: 'Marvel Studios',
+                category: 'superhero',
+                price: 450.00,
+                scale: '1/6 Scale Diecast',
+                brand: 'Hot Toys',
+                status: 'pre-order',
+                isNew: true,
+                images: [
+                    'https://placehold.co/600x800/450a0a/fecaca?text=Mark+85+Diecast'
+                ],
+                description: 'The final armor. Constructed with diecast metal parts for a heavy, premium feel. Features numerous LED light-up points and battle-damaged interchangeable parts.',
+                specs: {
+                    materials: 'Diecast Metal, PVC',
+                    dimensions: 'H: 13"',
+                    release: 'Est. Q1 2027',
+                    edition: 'Standard'
+                }
+            }
+        ];
+
+        // App State
+        const app = {
+            cart: [],
+            currentView: 'home',
+            
+            // Format currency
+            formatMoney: (amount) => {
+                return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+            },
+
+            // Navigation handler
+            navigate: (view, param = null) => {
+                app.currentView = view;
+                const container = document.getElementById('app-container');
+                window.scrollTo(0, 0); // Scroll to top on navigation
+                
+                // Slight fade effect
+                container.classList.remove('fade-in');
+                void container.offsetWidth; // trigger reflow
+                container.classList.add('fade-in');
+
+                switch(view) {
+                    case 'home':
+                        container.innerHTML = views.home();
+                        break;
+                    case 'plp':
+                        container.innerHTML = views.plp(param);
+                        break;
+                    case 'pdp':
+                        container.innerHTML = views.pdp(param);
+                        break;
+                    case 'cart':
+                        container.innerHTML = views.cart();
+                        break;
+                }
+                app.updateCartBadge();
+            },
+
+            addToCart: (productId) => {
+                const product = products.find(p => p.id === productId);
+                const existingItem = app.cart.find(item => item.id === productId);
+                
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                } else {
+                    app.cart.push({ ...product, quantity: 1 });
+                }
+                
+                app.updateCartBadge();
+                
+                // Show temporary toast notification instead of alert
+                showToast(`Added ${product.name} to cart.`);
+            },
+
+            updateCartQuantity: (productId, change) => {
+                const itemIndex = app.cart.findIndex(item => item.id === productId);
+                if (itemIndex > -1) {
+                    app.cart[itemIndex].quantity += change;
+                    if (app.cart[itemIndex].quantity <= 0) {
+                        app.cart.splice(itemIndex, 1);
+                    }
+                }
+                app.navigate('cart'); // re-render cart
+                app.updateCartBadge();
+            },
+
+            updateCartBadge: () => {
+                const badge = document.getElementById('cart-count');
+                const totalItems = app.cart.reduce((sum, item) => sum + item.quantity, 0);
+                if (totalItems > 0) {
+                    badge.textContent = totalItems;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        };
+
+        // UI Helpers
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+            menu.classList.toggle('flex');
+            document.body.classList.toggle('overflow-hidden'); // Prevent background scrolling
+        }
+
+        function getStatusLabelHTML(status) {
+            switch(status) {
+                case 'pre-order':
+                    return `<span class="bg-accent text-white text-[10px] font-display uppercase tracking-widest px-2 py-1">Pre-order</span>`;
+                case 'waitlist':
+                    return `<span class="bg-zinc-800 text-white text-[10px] font-display uppercase tracking-widest px-2 py-1">Waitlist</span>`;
+                case 'in-stock':
+                    return `<span class="border border-zinc-300 text-zinc-600 text-[10px] font-display uppercase tracking-widest px-2 py-1">In Stock</span>`;
+                default:
+                    return '';
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-4 right-4 bg-zinc-900 text-white px-6 py-4 shadow-xl z-50 font-display tracking-wide text-sm flex items-center gap-3 transform translate-y-full opacity-0 transition-all duration-300';
+            toast.innerHTML = `<i class="fa-solid fa-check text-green-400"></i> ${message}`;
+            document.body.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-y-full', 'opacity-0');
+            }, 10);
+
+            // Animate out and remove
+            setTimeout(() => {
+                toast.classList.add('translate-y-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        const views = {
+            
+            // --- HOMEPAGE VIEW ---
+            home: () => `
+                <!-- Hero Section -->
+                <section class="relative h-[85vh] bg-zinc-950 flex items-center overflow-hidden">
+                    <img src="https://placehold.co/1920x1080/111111/444444?text=Cinematic+Batman+Shot" alt="Hero Background" class="absolute inset-0 w-full h-full object-cover opacity-60">
+                    <div class="absolute inset-0 bg-gradient-to-r from-zinc-950/90 via-zinc-950/50 to-transparent"></div>
+                    
+                    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                        <div class="max-w-2xl">
+                            <div class="flex items-center gap-4 mb-4">
+                                <span class="bg-accent text-white text-xs font-display tracking-widest px-2 py-1">NEW DROP</span>
+                                <span class="text-zinc-400 font-display tracking-widest text-sm uppercase">Edition size: 1000</span>
+                            </div>
+                            <h1 class="font-display font-bold text-5xl md:text-7xl text-white tracking-tighter uppercase leading-[0.9] mb-6">
+                                The Dark Knight <br><span class="text-zinc-400">Premium Format</span>
+                            </h1>
+                            <p class="text-zinc-300 text-lg md:text-xl font-light mb-10 max-w-lg border-l-2 border-accent pl-4">
+                                A 1/4 scale cinematic masterpiece. Tailored fabric suit, interchangeable expressions, and absolute display dominance.
+                            </p>
+                            <button onclick="app.navigate('pdp', '1')" class="bg-white text-zinc-950 font-display font-bold uppercase tracking-widest px-8 py-4 hover:bg-zinc-200 transition-colors flex items-center gap-3">
+                                Pre-order Now <i class="fa-solid fa-arrow-right text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Cinematic Strip -->
+                <div class="border-y border-zinc-200 bg-zinc-50 overflow-hidden py-3">
+                    <div class="whitespace-nowrap flex gap-12 font-display text-sm tracking-widest text-zinc-400 uppercase animate-[slide_30s_linear_infinite]">
+                        ${Array(10).fill('<span>Authentic Collectibles</span><span class="text-zinc-300">•</span><span>Secure Packaging</span><span class="text-zinc-300">•</span><span>Global Shipping</span>').join('<span class="text-zinc-300">•</span>')}
+                    </div>
+                </div>
+
+                <!-- Categories -->
+                <section class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-end mb-12 border-b border-zinc-200 pb-4">
+                        <h2 class="font-display text-3xl font-bold tracking-tighter uppercase">Franchises</h2>
+                        <a href="#" onclick="app.navigate('plp', 'all')" class="font-display text-sm uppercase tracking-widest hover:text-accent flex items-center gap-2">View All <i class="fa-solid fa-arrow-right text-xs"></i></a>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="group relative h-[400px] overflow-hidden cursor-pointer bg-zinc-100" onclick="app.navigate('plp', 'batman')">
+                            <img src="https://placehold.co/600x800/222222/555555?text=DC+Heroes" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
+                            <div class="absolute bottom-8 left-8">
+                                <h3 class="font-display text-white text-3xl font-bold uppercase tracking-tighter mb-2">DC / Batman</h3>
+                                <div class="w-12 h-1 bg-accent transform origin-left transition-transform duration-300 group-hover:scale-x-150"></div>
+                            </div>
+                        </div>
+                        <div class="group relative h-[400px] overflow-hidden cursor-pointer bg-zinc-100" onclick="app.navigate('plp', 'anime')">
+                            <img src="https://placehold.co/600x800/1e293b/475569?text=Anime+Figures" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
+                            <div class="absolute bottom-8 left-8">
+                                <h3 class="font-display text-white text-3xl font-bold uppercase tracking-tighter mb-2">Anime</h3>
+                                <div class="w-12 h-1 bg-accent transform origin-left transition-transform duration-300 group-hover:scale-x-150"></div>
+                            </div>
+                        </div>
+                        <div class="group relative h-[400px] overflow-hidden cursor-pointer bg-zinc-100" onclick="app.navigate('plp', 'gaming')">
+                            <img src="https://placehold.co/600x800/27272a/52525b?text=Gaming+Collectibles" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
+                            <div class="absolute bottom-8 left-8">
+                                <h3 class="font-display text-white text-3xl font-bold uppercase tracking-tighter mb-2">Gaming</h3>
+                                <div class="w-12 h-1 bg-accent transform origin-left transition-transform duration-300 group-hover:scale-x-150"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Featured Drops -->
+                <section class="py-24 bg-zinc-50">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                         <div class="flex flex-col md:flex-row justify-between items-baseline mb-12 border-b border-zinc-200 pb-4 gap-4">
+                            <div>
+                                <h2 class="font-display text-3xl font-bold tracking-tighter uppercase">Latest Allocations</h2>
+                                <p class="text-zinc-500 text-sm mt-1">Recently added stock and new pre-orders.</p>
+                            </div>
+                            <a href="#" onclick="app.navigate('plp', 'new')" class="font-display text-sm uppercase tracking-widest hover:text-accent shrink-0">Shop New <i class="fa-solid fa-arrow-right text-xs ml-2"></i></a>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                            ${products.slice(0, 4).map(p => `
+                                <div class="group cursor-pointer flex flex-col" onclick="app.navigate('pdp', '${p.id}')">
+                                    <div class="relative bg-zinc-200 aspect-[3/4] mb-4 overflow-hidden">
+                                        <img src="${p.images[0]}" alt="${p.name}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 mix-blend-multiply">
+                                        <div class="absolute top-3 left-3 flex flex-col gap-2">
+                                            ${p.isNew ? '<span class="bg-black text-white text-[10px] font-display uppercase tracking-widest px-2 py-1 w-fit">New</span>' : ''}
+                                            ${getStatusLabelHTML(p.status)}
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col flex-grow">
+                                        <span class="text-xs text-zinc-500 font-display uppercase tracking-widest mb-1">${p.brand}</span>
+                                        <h3 class="font-bold text-zinc-900 leading-tight mb-2 group-hover:text-accent transition-colors">${p.name}</h3>
+                                        <div class="mt-auto flex justify-between items-center pt-3 border-t border-zinc-100">
+                                            <span class="font-display font-medium text-lg">${app.formatMoney(p.price)}</span>
+                                            <span class="text-xs text-zinc-400">${p.scale}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Editorial -->
+                <section class="py-32 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                        <div>
+                            <span class="text-accent font-display tracking-widest text-sm uppercase mb-4 block">The Archive Standard</span>
+                            <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tighter uppercase mb-6 leading-tight">Curated for the<br>Discerning Eye.</h2>
+                            <p class="text-zinc-600 mb-8 leading-relaxed">
+                                We do not sell toys. We curate museum-quality, highly detailed display pieces designed to be the centerpiece of your collection. From meticulously tailored fabrics to hand-painted portraits and massive architectural bases, every piece in our archive meets a strict standard of craftsmanship.
+                            </p>
+                            <div class="grid grid-cols-2 gap-8 border-t border-zinc-200 pt-8">
+                                <div>
+                                    <i class="fa-solid fa-shield-halved text-2xl text-zinc-900 mb-3"></i>
+                                    <h4 class="font-display font-bold uppercase text-sm mb-1">Guaranteed Authentic</h4>
+                                    <p class="text-xs text-zinc-500">Direct from premium manufacturers.</p>
+                                </div>
+                                <div>
+                                    <i class="fa-solid fa-box text-2xl text-zinc-900 mb-3"></i>
+                                    <h4 class="font-display font-bold uppercase text-sm mb-1">Collector Grade Shipping</h4>
+                                    <p class="text-xs text-zinc-500">Double-boxed, corner protected.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-100 aspect-square p-8 md:p-12 relative flex items-center justify-center">
+                             <!-- Abstract geometric frame representing display -->
+                             <div class="absolute inset-4 border border-zinc-300"></div>
+                             <div class="absolute inset-8 border border-zinc-300"></div>
+                             <img src="https://placehold.co/600x800/1a1a1a/ffffff?text=Craftsmanship+Detail" class="relative z-10 w-3/4 h-3/4 object-cover shadow-2xl">
+                        </div>
+                    </div>
+                </section>
+            `,
+
+            // --- PRODUCT LISTING PAGE (PLP) ---
+            plp: (filter = 'all') => {
+                let filteredProducts = products;
+                let pageTitle = 'All Figures';
+
+                if (filter === 'new') {
+                    filteredProducts = products.filter(p => p.isNew);
+                    pageTitle = 'New Drops';
+                } else if (filter !== 'all') {
+                    filteredProducts = products.filter(p => p.category === filter);
+                    pageTitle = filter === 'batman' ? 'DC / Batman' : filter.charAt(0).toUpperCase() + filter.slice(1);
+                }
+
+                return `
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <!-- Page Header -->
+                    <div class="mb-12 border-b border-zinc-200 pb-8">
+                        <div class="flex items-center gap-2 text-xs text-zinc-500 font-display uppercase tracking-widest mb-4">
+                            <a href="#" onclick="app.navigate('home')" class="hover:text-zinc-900">Home</a>
+                            <span>/</span>
+                            <span class="text-zinc-900">${pageTitle}</span>
+                        </div>
+                        <h1 class="font-display text-4xl md:text-5xl font-bold tracking-tighter uppercase">${pageTitle}</h1>
+                        <p class="text-zinc-500 mt-2">${filteredProducts.length} Items found in the archive.</p>
+                    </div>
+
+                    <div class="flex flex-col lg:flex-row gap-12">
+                        <!-- Filters Sidebar -->
+                        <aside class="w-full lg:w-64 shrink-0">
+                            <div class="sticky top-28 space-y-8">
+                                <!-- Filter Group -->
+                                <div>
+                                    <h3 class="font-display font-bold uppercase tracking-widest text-sm border-b border-zinc-900 pb-2 mb-4 flex justify-between">
+                                        Status <i class="fa-solid fa-chevron-down text-xs self-center"></i>
+                                    </h3>
+                                    <div class="space-y-3 text-sm">
+                                        <label class="flex items-center gap-3 cursor-pointer group">
+                                            <input type="checkbox" class="w-4 h-4 border-zinc-300 rounded-none text-zinc-900 focus:ring-zinc-900 accent-zinc-900">
+                                            <span class="group-hover:text-accent transition-colors">In Stock</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer group">
+                                            <input type="checkbox" class="w-4 h-4 border-zinc-300 rounded-none text-zinc-900 focus:ring-zinc-900 accent-zinc-900" checked>
+                                            <span class="group-hover:text-accent transition-colors">Pre-order</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer group">
+                                            <input type="checkbox" class="w-4 h-4 border-zinc-300 rounded-none text-zinc-900 focus:ring-zinc-900 accent-zinc-900">
+                                            <span class="group-hover:text-accent transition-colors">Waitlist</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Filter Group -->
+                                <div>
+                                    <h3 class="font-display font-bold uppercase tracking-widest text-sm border-b border-zinc-900 pb-2 mb-4 flex justify-between">
+                                        Scale <i class="fa-solid fa-chevron-down text-xs self-center"></i>
+                                    </h3>
+                                    <div class="space-y-3 text-sm">
+                                        <label class="flex items-center gap-3 cursor-pointer group">
+                                            <input type="checkbox" class="w-4 h-4 border-zinc-300 rounded-none text-zinc-900 focus:ring-zinc-900 accent-zinc-900">
+                                            <span class="group-hover:text-accent transition-colors">1/3 Scale</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer group">
+                                            <input type="checkbox" class="w-4 h-4 border-zinc-300 rounded-none text-zinc-900 focus:ring-zinc-900 accent-zinc-900">
+                                            <span class="group-hover:text-accent transition-colors">1/4 Scale</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer group">
+                                            <input type="checkbox" class="w-4 h-4 border-zinc-300 rounded-none text-zinc-900 focus:ring-zinc-900 accent-zinc-900">
+                                            <span class="group-hover:text-accent transition-colors">1/6 Scale</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <button class="w-full border border-zinc-900 text-zinc-900 font-display uppercase tracking-widest text-sm py-3 hover:bg-zinc-900 hover:text-white transition-colors">
+                                    Apply Filters
+                                </button>
+                            </div>
+                        </aside>
+
+                        <!-- Product Grid -->
+                        <div class="flex-grow">
+                            <!-- Sort Bar -->
+                            <div class="flex justify-between items-center mb-6">
+                                <span class="text-sm text-zinc-500">Showing all results</span>
+                                <select class="bg-transparent border-none text-sm font-display tracking-widest uppercase outline-none cursor-pointer focus:ring-0">
+                                    <option>Sort by: Newest</option>
+                                    <option>Price: High to Low</option>
+                                    <option>Price: Low to High</option>
+                                </select>
+                            </div>
+
+                            ${filteredProducts.length > 0 ? `
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+                                    ${filteredProducts.map(p => `
+                                        <div class="group cursor-pointer flex flex-col" onclick="app.navigate('pdp', '${p.id}')">
+                                            <div class="relative bg-zinc-100 aspect-[3/4] mb-4 overflow-hidden border border-zinc-200">
+                                                <img src="${p.images[0]}" alt="${p.name}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 mix-blend-multiply">
+                                                <div class="absolute top-3 left-3 flex flex-col gap-2 z-10">
+                                                    ${p.isNew ? '<span class="bg-black text-white text-[10px] font-display uppercase tracking-widest px-2 py-1 w-fit">New</span>' : ''}
+                                                    ${getStatusLabelHTML(p.status)}
+                                                </div>
+                                                <!-- Hover Quick Add -->
+                                                <div class="absolute inset-x-0 bottom-0 bg-white/90 backdrop-blur transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex border-t border-zinc-200">
+                                                    <button class="flex-1 py-3 font-display uppercase tracking-widest text-xs font-bold hover:bg-zinc-900 hover:text-white transition-colors" onclick="event.stopPropagation(); app.navigate('pdp', '${p.id}')">View Details</button>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col flex-grow">
+                                                <div class="flex justify-between items-start mb-1">
+                                                    <span class="text-xs text-zinc-500 font-display uppercase tracking-widest">${p.brand}</span>
+                                                    <span class="text-[10px] text-zinc-400 border border-zinc-200 px-1">${p.scale}</span>
+                                                </div>
+                                                <h3 class="font-bold text-zinc-900 leading-tight mb-2 group-hover:text-accent transition-colors">${p.name}</h3>
+                                                <div class="mt-auto pt-2">
+                                                    <span class="font-display font-medium text-lg">${app.formatMoney(p.price)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : `
+                                <div class="py-20 text-center border border-zinc-200 bg-zinc-50">
+                                    <i class="fa-solid fa-box-open text-4xl text-zinc-300 mb-4"></i>
+                                    <h3 class="font-display font-bold uppercase tracking-widest mb-2">No items found</h3>
+                                    <p class="text-zinc-500">Try adjusting your filters or checking a different category.</p>
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                </div>
+                `;
+            },
+
+            // --- PRODUCT DETAIL PAGE (PDP) ---
+            pdp: (productId) => {
+                const p = products.find(prod => prod.id === productId);
+                if (!p) return '<div class="p-20 text-center">Product not found.</div>';
+
+                // Determine button text/color based on status
+                let btnText = "Add to Cart";
+                let btnClass = "bg-zinc-900 hover:bg-zinc-800 text-white";
+                if(p.status === 'pre-order') {
+                    btnText = "Pre-order Now";
+                    btnClass = "bg-accent hover:bg-accent-hover text-white";
+                } else if (p.status === 'waitlist') {
+                    btnText = "Join Waitlist";
+                    btnClass = "bg-zinc-200 text-zinc-500 cursor-not-allowed";
+                }
+
+                return `
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
+                    <!-- Breadcrumbs -->
+                    <div class="flex items-center gap-2 text-xs text-zinc-500 font-display uppercase tracking-widest mb-8">
+                        <a href="#" onclick="app.navigate('home')" class="hover:text-zinc-900">Home</a>
+                        <span>/</span>
+                        <a href="#" onclick="app.navigate('plp', '${p.category}')" class="hover:text-zinc-900">${p.category}</a>
+                        <span>/</span>
+                        <span class="text-zinc-900 truncate max-w-[200px]">${p.name}</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
+                        
+                        <!-- Left: Image Gallery -->
+                        <div class="lg:col-span-7 flex flex-col md:flex-row gap-4">
+                            <!-- Thumbnails (Desktop) -->
+                            <div class="hidden md:flex flex-col gap-4 w-24 shrink-0">
+                                ${p.images.map((img, idx) => `
+                                    <button class="border border-zinc-200 aspect-[3/4] hover:border-zinc-900 transition-colors bg-zinc-100 overflow-hidden">
+                                        <img src="${img}" class="w-full h-full object-cover mix-blend-multiply opacity-80 hover:opacity-100">
+                                    </button>
+                                `).join('')}
+                            </div>
+                            
+                            <!-- Main Image -->
+                            <div class="flex-grow bg-zinc-100 border border-zinc-200 relative aspect-[4/5] overflow-hidden">
+                                <img src="${p.images[0]}" alt="${p.name}" class="absolute inset-0 w-full h-full object-cover mix-blend-multiply">
+                                <div class="absolute top-4 left-4 flex gap-2">
+                                    ${getStatusLabelHTML(p.status)}
+                                    ${p.isNew ? '<span class="bg-black text-white text-[10px] font-display uppercase tracking-widest px-2 py-1">New</span>' : ''}
+                                </div>
+                            </div>
+
+                            <!-- Thumbnails (Mobile) -->
+                            <div class="flex md:hidden gap-4 overflow-x-auto no-scrollbar pb-2">
+                                 ${p.images.map((img, idx) => `
+                                    <div class="w-20 shrink-0 border border-zinc-200 aspect-[3/4] bg-zinc-100">
+                                        <img src="${img}" class="w-full h-full object-cover mix-blend-multiply">
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Right: Product Info -->
+                        <div class="lg:col-span-5 flex flex-col sticky top-28 h-fit">
+                            
+                            <!-- Header Info -->
+                            <div class="border-b border-zinc-200 pb-6 mb-6">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="text-sm font-display text-zinc-500 uppercase tracking-widest">${p.brand}</span>
+                                    <span class="text-xs font-mono bg-zinc-100 px-2 py-1 text-zinc-600 border border-zinc-200">ID: ${p.id.padStart(4, '0')}</span>
+                                </div>
+                                <h1 class="font-display font-bold text-3xl md:text-4xl tracking-tighter uppercase leading-none mb-4">
+                                    ${p.name}
+                                </h1>
+                                <div class="flex items-center gap-4">
+                                    <span class="font-display text-2xl">${app.formatMoney(p.price)}</span>
+                                    ${p.status === 'pre-order' ? '<span class="text-xs text-accent uppercase tracking-widest font-bold">Non-Refundable Deposit Required</span>' : ''}
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="mb-8">
+                                <p class="text-zinc-600 leading-relaxed text-sm">
+                                    ${p.description}
+                                </p>
+                            </div>
+
+                            <!-- Form/CTA -->
+                            <div class="mb-10 space-y-4 border-b border-zinc-200 pb-10">
+                                <button 
+                                    class="w-full ${btnClass} font-display font-bold uppercase tracking-widest py-4 flex justify-center items-center gap-3 transition-colors"
+                                    ${p.status === 'waitlist' ? 'disabled' : `onclick="app.addToCart('${p.id}')"`}
+                                >
+                                    ${btnText} ${p.status !== 'waitlist' ? '<i class="fa-solid fa-plus text-sm"></i>' : ''}
+                                </button>
+                                
+                                <div class="flex items-center justify-center gap-6 text-xs text-zinc-500 uppercase tracking-widest mt-4">
+                                    <span class="flex items-center gap-2"><i class="fa-solid fa-truck-fast"></i> Secure Ship</span>
+                                    <span class="flex items-center gap-2"><i class="fa-solid fa-shield-check"></i> Authentic</span>
+                                </div>
+                            </div>
+
+                            <!-- Specifications Accordion style -->
+                            <div class="space-y-4">
+                                <div>
+                                    <h3 class="font-display font-bold uppercase tracking-widest text-sm border-b border-zinc-900 pb-2 mb-3">Specifications</h3>
+                                    <ul class="text-sm text-zinc-600 space-y-2">
+                                        <li class="grid grid-cols-3 border-b border-zinc-100 pb-2"><span class="text-zinc-400">Franchise</span> <span class="col-span-2 font-medium text-zinc-900">${p.franchise}</span></li>
+                                        <li class="grid grid-cols-3 border-b border-zinc-100 pb-2"><span class="text-zinc-400">Scale</span> <span class="col-span-2 font-medium text-zinc-900">${p.scale}</span></li>
+                                        <li class="grid grid-cols-3 border-b border-zinc-100 pb-2"><span class="text-zinc-400">Materials</span> <span class="col-span-2 font-medium text-zinc-900">${p.specs.materials}</span></li>
+                                        <li class="grid grid-cols-3 border-b border-zinc-100 pb-2"><span class="text-zinc-400">Dimensions</span> <span class="col-span-2 font-medium text-zinc-900">${p.specs.dimensions}</span></li>
+                                        <li class="grid grid-cols-3"><span class="text-zinc-400">Est. Release</span> <span class="col-span-2 font-medium text-zinc-900">${p.specs.release}</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                `;
+            },
+
+            // --- CART VIEW ---
+            cart: () => {
+                const subtotal = app.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const hasItems = app.cart.length > 0;
+
+                return `
+                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 min-h-[60vh]">
+                    <h1 class="font-display text-4xl font-bold tracking-tighter uppercase mb-2">Requisition Log</h1>
+                    <p class="text-zinc-500 mb-8 border-b border-zinc-200 pb-4">Review your selected artifacts before finalizing procurement.</p>
+
+                    ${!hasItems ? `
+                        <div class="text-center py-20 bg-zinc-50 border border-zinc-200">
+                            <i class="fa-solid fa-cart-shopping text-4xl text-zinc-300 mb-4"></i>
+                            <h2 class="font-display font-bold uppercase tracking-widest text-lg mb-2">Cart is Empty</h2>
+                            <p class="text-zinc-500 mb-6 text-sm">You have not added any figures to your cart yet.</p>
+                            <button onclick="app.navigate('home')" class="bg-zinc-900 text-white font-display uppercase tracking-widest px-8 py-3 text-sm hover:bg-accent transition-colors">
+                                Return to Archive
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="flex flex-col lg:flex-row gap-12">
+                            <!-- Items List -->
+                            <div class="flex-grow space-y-6">
+                                ${app.cart.map(item => `
+                                    <div class="flex gap-6 py-6 border-b border-zinc-100 relative group">
+                                        <!-- Remove Btn -->
+                                        <button onclick="app.updateCartQuantity('${item.id}', -${item.quantity})" class="absolute top-6 right-0 text-zinc-400 hover:text-accent transition-colors">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+
+                                        <div class="w-24 h-32 shrink-0 bg-zinc-100 border border-zinc-200 overflow-hidden cursor-pointer" onclick="app.navigate('pdp', '${item.id}')">
+                                             <img src="${item.images[0]}" class="w-full h-full object-cover mix-blend-multiply">
+                                        </div>
+                                        <div class="flex flex-col flex-grow py-1">
+                                            <span class="text-[10px] text-zinc-500 font-display uppercase tracking-widest mb-1">${item.brand} | ${item.scale}</span>
+                                            <h3 class="font-bold text-zinc-900 leading-tight mb-1 pr-6 cursor-pointer hover:text-accent" onclick="app.navigate('pdp', '${item.id}')">${item.name}</h3>
+                                            ${item.status === 'pre-order' ? '<span class="text-[10px] text-accent uppercase tracking-widest mb-4">Pre-order Item</span>' : '<span class="text-[10px] text-zinc-400 uppercase tracking-widest mb-4">In Stock</span>'}
+                                            
+                                            <div class="mt-auto flex justify-between items-end">
+                                                <div class="flex items-center border border-zinc-300 w-fit">
+                                                    <button onclick="app.updateCartQuantity('${item.id}', -1)" class="px-3 py-1 text-zinc-500 hover:bg-zinc-100">-</button>
+                                                    <span class="px-3 py-1 font-mono text-sm border-x border-zinc-300 w-8 text-center">${item.quantity}</span>
+                                                    <button onclick="app.updateCartQuantity('${item.id}', 1)" class="px-3 py-1 text-zinc-500 hover:bg-zinc-100">+</button>
+                                                </div>
+                                                <span class="font-display font-bold">${app.formatMoney(item.price * item.quantity)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <!-- Summary Sidebar -->
+                            <div class="w-full lg:w-[320px] shrink-0">
+                                <div class="bg-zinc-50 border border-zinc-200 p-6 sticky top-28">
+                                    <h3 class="font-display font-bold uppercase tracking-widest border-b border-zinc-200 pb-4 mb-4">Order Summary</h3>
+                                    
+                                    <div class="space-y-3 text-sm text-zinc-600 border-b border-zinc-200 pb-4 mb-4">
+                                        <div class="flex justify-between">
+                                            <span>Subtotal</span>
+                                            <span class="text-zinc-900 font-medium">${app.formatMoney(subtotal)}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Shipping</span>
+                                            <span class="text-zinc-500 italic">Calculated at checkout</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Taxes</span>
+                                            <span class="text-zinc-500 italic">Calculated at checkout</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex justify-between items-end mb-6">
+                                        <span class="font-display uppercase tracking-widest text-sm font-bold">Total Estimated</span>
+                                        <span class="font-display font-bold text-2xl">${app.formatMoney(subtotal)}</span>
+                                    </div>
+
+                                    <button class="w-full bg-accent hover:bg-accent-hover text-white font-display font-bold uppercase tracking-widest py-4 transition-colors mb-4 flex justify-center items-center gap-2">
+                                        Secure Checkout <i class="fa-solid fa-lock text-xs"></i>
+                                    </button>
+
+                                    <p class="text-[10px] text-zinc-500 text-center leading-relaxed">
+                                        By proceeding, you agree to our Terms of Service. Pre-orders may require a non-refundable deposit.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `}
+                </div>
+                `;
+            }
+        };
+
+        window.onload = () => {
+            // Render initial view
+            app.navigate('home');
+            
+            // Handle browser back/forward buttons simply (re-renders home for now to prevent getting stuck)
+            window.addEventListener('popstate', () => {
+               app.navigate('home');
+            });
+
+            // Add subtle scroll effect to header
+            window.addEventListener('scroll', () => {
+                const header = document.getElementById('main-header');
+                if (window.scrollY > 20) {
+                    header.classList.add('shadow-sm');
+                } else {
+                    header.classList.remove('shadow-sm');
+                }
+            });
+        };
+    </script>
+</body>
+</html>
