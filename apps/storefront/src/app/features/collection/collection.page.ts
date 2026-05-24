@@ -61,7 +61,11 @@ import { CatalogApiService } from '../../core/services/catalog-api.service';
               <div class="product-grid product-grid--wide">
                 @for (product of products().items; track product.id) {
                   <article class="product-card product-card--listing" [attr.data-tone]="product.categorySlug">
-                    <a class="product-card__media product-card__media--tall" [routerLink]="['/products', product.slug]">
+                    <a
+                      class="product-card__media product-card__media--tall"
+                      [routerLink]="['/products', product.slug]"
+                      [style.--product-image]="'url(' + (product.primaryImageUrl ?? '') + ')'"
+                    >
                       <div class="product-card__badges">
                         @if (product.isNew) {
                           <span class="badge badge--dark">New</span>
@@ -70,10 +74,11 @@ import { CatalogApiService } from '../../core/services/catalog-api.service';
                           {{ product.status === 'PreOrder' ? 'Pre-order' : product.status | titlecase }}
                         </span>
                       </div>
+                      <div class="product-card__eyebrow">{{ product.studioName }}</div>
                       <div class="product-card__title">{{ product.name }}</div>
                     </a>
                     <div class="product-card__meta">
-                      <p>{{ product.studioName }}</p>
+                      <p>{{ collectionTitle() }}</p>
                       <a class="product-card__name" [routerLink]="['/products', product.slug]">
                         {{ product.name }}
                       </a>

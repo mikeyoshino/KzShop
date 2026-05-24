@@ -31,13 +31,18 @@ import { CatalogApiService } from '../../core/services/catalog-api.service';
                     class="gallery-thumb"
                     [class.is-active]="selectedImageIndex() === index"
                     (click)="selectedImageIndex.set(index)"
+                    [style.--product-image]="'url(' + image.publicUrl + ')'"
                   >
                     <span>{{ image.altText || 'View ' + (index + 1) }}</span>
                   </button>
                 }
               </div>
 
-              <div class="product-hero-card" [attr.data-tone]="product.categorySlug">
+              <div
+                class="product-hero-card"
+                [attr.data-tone]="product.categorySlug"
+                [style.--product-image]="'url(' + activeImage().publicUrl + ')'"
+              >
                 <div class="product-card__badges">
                   <span class="badge" [class.badge--accent]="product.status === 'PreOrder'">
                     {{ product.status === 'PreOrder' ? 'Pre-order' : product.status | titlecase }}
@@ -66,12 +71,18 @@ import { CatalogApiService } from '../../core/services/catalog-api.service';
                 <span>Non-refundable deposit required</span>
               </div>
 
+              <p class="product-summary">
+                {{ product.shortDescription }}
+              </p>
+
               <p class="product-description">
                 {{ product.description }}
               </p>
 
               <div class="product-actions">
-                <a class="button button--accent" routerLink="/">Pre-order now</a>
+                <button type="button" class="button button--accent" disabled>
+                  {{ primaryCtaLabel(product.status) }}
+                </button>
                 <div class="product-flags">
                   <span>Secure ship</span>
                   <span>Authentic</span>
@@ -170,6 +181,22 @@ export class ProductPageComponent {
 
     return categorySlug.replace(/-/g, ' ').toUpperCase();
   });
+
+  protected primaryCtaLabel(status: string): string {
+    if (status === 'PreOrder') {
+      return 'Pre-order opens soon';
+    }
+
+    if (status === 'Active') {
+      return 'Catalog only for now';
+    }
+
+    if (status === 'Waitlist') {
+      return 'Join waitlist soon';
+    }
+
+    return 'Unavailable for purchase';
+  }
 
   constructor() {
     effect(() => {
