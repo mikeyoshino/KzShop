@@ -15,12 +15,14 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
         <nav class="admin-nav" aria-label="Admin sections">
           <a routerLink="/dashboard" routerLinkActive="is-active">Dashboard</a>
           <a routerLink="/products" routerLinkActive="is-active">Products</a>
+          <a routerLink="/studios" routerLinkActive="is-active">Studios</a>
+          <a routerLink="/categories" routerLinkActive="is-active">Categories</a>
         </nav>
 
         <section class="admin-sidebar__status" aria-label="Workspace status">
-          <p>Phase 1</p>
-          <strong>Catalog foundation</strong>
-          <span>Studios, products, and inventory controls next.</span>
+          <p>Phase 2</p>
+          <strong>Catalog management</strong>
+          <span>Studios, categories, products, inventory, and images.</span>
         </section>
       </aside>
 

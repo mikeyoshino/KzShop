@@ -2,6 +2,7 @@ import { CurrencyPipe, NgClass } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { of } from 'rxjs';
 import { catchError, distinctUntilChanged, map, switchMap } from 'rxjs/operators';
 import { ProductCard } from '../../core/models/catalog.models';
@@ -10,7 +11,7 @@ import { CatalogApiService } from '../../core/services/catalog-api.service';
 @Component({
   selector: 'app-products-page',
   standalone: true,
-  imports: [CurrencyPipe, FormsModule, NgClass],
+  imports: [CurrencyPipe, FormsModule, NgClass, RouterLink],
   template: `
     <section class="page-stack">
       <article class="panel products-panel">
@@ -18,10 +19,10 @@ import { CatalogApiService } from '../../core/services/catalog-api.service';
           <p class="section-label">Catalog</p>
           <h2>Products</h2>
         </div>
-        <p>
-          Review the live seeded lineup, narrow it by merchandised state, and inspect the current
-          read model before write-side product tooling lands.
-        </p>
+        <p>Manage catalog products, then open full editor for specifications, inventory, and images.</p>
+        <div class="toolbar toolbar--meta">
+          <a class="button-primary" routerLink="/products/new">Create product</a>
+        </div>
       </article>
 
       <section class="panel products-panel">
@@ -184,7 +185,7 @@ export class ProductsPageComponent {
   protected readonly selectedSlug = signal('');
 
   protected readonly products = toSignal(
-    this.catalogApi.getProducts().pipe(map((response) => response.items)),
+    this.catalogApi.getAdminProducts().pipe(map((response) => response.items)),
     { initialValue: [] as ProductCard[] },
   );
 
@@ -220,7 +221,10 @@ export class ProductsPageComponent {
   protected readonly selectedProduct = toSignal(
     toObservable(this.activeSlug).pipe(
       distinctUntilChanged(),
-      switchMap((slug) => (slug ? this.catalogApi.getProductBySlug(slug) : of(null))),
+      switchMap((slug) => {
+        const product = this.products().find((x) => x.slug === slug);
+        return product ? this.catalogApi.getAdminProductById(product.id) : of(null);
+      }),
       catchError(() => of(null)),
     ),
     { initialValue: null },
