@@ -1,0 +1,15 @@
+# node
+node_modules/
+dist/
+.angular/
+
+# dotnet
+bin/
+obj/
+
+# local env
+.env
+.env.local
+
+# tooling
+.superpowers/

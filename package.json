@@ -1,0 +1,14 @@
+{
+  "name": "toyshops",
+  "private": true,
+  "workspaces": [
+    "apps/storefront",
+    "apps/admin"
+  ],
+  "scripts": {
+    "build:storefront": "npm --workspace apps/storefront run build",
+    "build:admin": "npm --workspace apps/admin run build",
+    "dev:storefront": "npm --workspace apps/storefront run dev",
+    "dev:admin": "npm --workspace apps/admin run dev"
+  }
+}
