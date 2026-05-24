@@ -4,6 +4,8 @@ namespace Ecommerce.Application.Studios.CreateStudio;
 
 public class CreateStudioValidator : AbstractValidator<CreateStudioCommand>
 {
+    private const string SlugPattern = "^[a-z0-9]+(?:-[a-z0-9]+)*$";
+
     public CreateStudioValidator()
     {
         RuleFor(x => x.Name)
@@ -12,6 +14,8 @@ public class CreateStudioValidator : AbstractValidator<CreateStudioCommand>
 
         RuleFor(x => x.Slug)
             .NotEmpty()
-            .MaximumLength(160);
+            .MaximumLength(160)
+            .Matches(SlugPattern)
+            .WithMessage("Slug must contain only lowercase letters, numbers, and hyphens, with no spaces.");
     }
 }

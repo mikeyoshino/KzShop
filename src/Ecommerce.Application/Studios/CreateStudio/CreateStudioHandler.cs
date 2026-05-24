@@ -29,7 +29,7 @@ public class CreateStudioHandler : IRequestHandler<CreateStudioCommand, CreateSt
 
         var hasDuplicateName = await _context.Studios
             .AsNoTracking()
-            .AnyAsync(x => x.Name.ToLower() == normalizedName.ToLower(), cancellationToken);
+            .AnyAsync(x => x.Name == normalizedName, cancellationToken);
         if (hasDuplicateName)
         {
             throw new InvalidOperationException("Studio name already exists.");
@@ -37,8 +37,33 @@ public class CreateStudioHandler : IRequestHandler<CreateStudioCommand, CreateSt
 
         var studio = new Studio(normalizedName, normalizedSlug, request.IsActive);
         _context.Studios.Add(studio);
-        await _context.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex, "Slug"))
+        {
+            throw new InvalidOperationException("Studio slug already exists.", ex);
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex, "Name"))
+        {
+            throw new InvalidOperationException("Studio name already exists.", ex);
+        }
 
         return new CreateStudioResponse(studio.Id, studio.Name, studio.Slug, studio.IsActive);
+    }
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException exception, string propertyName)
+    {
+        var message = $"{exception.Message} {exception.InnerException?.Message}";
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return false;
+        }
+
+        return message.Contains("unique", StringComparison.OrdinalIgnoreCase)
+            && (message.Contains($"IX_Studios_{propertyName}", StringComparison.OrdinalIgnoreCase)
+                || message.Contains(propertyName, StringComparison.OrdinalIgnoreCase));
     }
 }

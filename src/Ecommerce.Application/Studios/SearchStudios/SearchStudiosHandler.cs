@@ -19,8 +19,8 @@ public class SearchStudiosHandler : IRequestHandler<SearchStudiosQuery, SearchSt
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var search = request.Search.Trim().ToLowerInvariant();
-            query = query.Where(x => x.Name.ToLower().Contains(search) || x.Slug.Contains(search));
+            var search = request.Search.Trim();
+            query = query.Where(x => x.Name.Contains(search) || x.Slug.Contains(search));
         }
 
         var items = await query

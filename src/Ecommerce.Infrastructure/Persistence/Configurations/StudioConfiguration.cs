@@ -21,6 +21,9 @@ public class StudioConfiguration : IEntityTypeConfiguration<Studio>
         builder.HasIndex(x => x.Slug)
             .IsUnique();
 
+        builder.HasIndex(x => x.Name)
+            .IsUnique();
+
         builder.Property(x => x.IsActive)
             .IsRequired();
     }
