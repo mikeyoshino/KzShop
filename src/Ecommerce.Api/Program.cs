@@ -1,5 +1,8 @@
 using Ecommerce.Application;
 using Ecommerce.Infrastructure;
+using Ecommerce.Infrastructure.Persistence;
+using Ecommerce.Infrastructure.Persistence.Seed;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +16,11 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await dbContext.Database.EnsureCreatedAsync();
+    await CatalogSeed.SeedDevelopmentCatalogAsync(dbContext);
+
     app.UseSwagger();
     app.UseSwaggerUI();
 }
