@@ -1,4 +1,5 @@
 using Ecommerce.Application.Categories.CreateCategory;
+using Ecommerce.Application.Categories.GetCategories;
 using Ecommerce.Application.Categories.UpdateCategory;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,12 @@ public class AdminCategoriesController : AdminApiControllerBase
     public AdminCategoriesController(ISender sender)
     {
         _sender = sender;
+    }
+
+    [HttpGet]
+    public Task<GetCategoriesResponse> Get([FromQuery] string? search, CancellationToken cancellationToken)
+    {
+        return _sender.Send(new GetCategoriesQuery(search), cancellationToken);
     }
 
     [HttpPost]

@@ -73,6 +73,14 @@ export class CatalogApiService {
     return this.http.put<CategorySummary>(`${this.adminBaseUrl}/categories/${encodeURIComponent(id)}`, input);
   }
 
+  getCategories(search = ''): Observable<{ items: CategorySummary[] }> {
+    const query = search.trim();
+    const url = query.length > 0
+      ? `${this.adminBaseUrl}/categories?search=${encodeURIComponent(query)}`
+      : `${this.adminBaseUrl}/categories`;
+    return this.http.get<{ items: CategorySummary[] }>(url).pipe(catchError(() => of({ items: [] })));
+  }
+
   createProduct(input: UpsertProductInput): Observable<{ id: string }> {
     return this.http.post<{ id: string }>(`${this.adminBaseUrl}/products`, input);
   }

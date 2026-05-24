@@ -30,6 +30,9 @@ import { CatalogApiService } from '../../core/services/catalog-api.service';
       </section>
 
       <section class="panel products-panel">
+        <div class="toolbar">
+          <input [(ngModel)]="search" (ngModelChange)="refreshCategories()" placeholder="Search category" />
+        </div>
         <div>
           <p class="section-label">Managed list</p>
           <h2>Categories</h2>
@@ -84,23 +87,10 @@ export class CategoriesPageComponent {
   protected editSlug = '';
   protected editDescription = '';
   protected editIsActive = true;
+  protected search = '';
 
   constructor() {
-    this.api.getAdminProducts().subscribe((payload) => {
-      const bySlug = new Map<string, CategorySummary>();
-      for (const product of payload.items) {
-        if (!bySlug.has(product.categorySlug)) {
-          bySlug.set(product.categorySlug, {
-            id: product.categorySlug,
-            name: product.categorySlug,
-            slug: product.categorySlug,
-            description: '',
-            isActive: true,
-          });
-        }
-      }
-      this.categories = Array.from(bySlug.values());
-    });
+    this.refreshCategories();
   }
 
   protected createCategory(): void {
@@ -113,11 +103,11 @@ export class CategoriesPageComponent {
       })
       .subscribe({
         next: (created) => {
-          this.categories = [created, ...this.categories];
           this.name = '';
           this.slug = '';
           this.description = '';
           this.message = 'Category created.';
+          this.refreshCategories();
         },
         error: () => (this.message = 'Create category failed.'),
       });
@@ -151,5 +141,11 @@ export class CategoriesPageComponent {
         },
         error: () => (this.message = 'Update category failed.'),
       });
+  }
+
+  protected refreshCategories(): void {
+    this.api.getCategories(this.search).subscribe((response) => {
+      this.categories = response.items;
+    });
   }
 }

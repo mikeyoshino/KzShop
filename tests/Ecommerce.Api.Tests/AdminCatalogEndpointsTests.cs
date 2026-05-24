@@ -41,6 +41,28 @@ public class AdminCatalogEndpointsTests : IClassFixture<TestApiFactory>
     }
 
     [Fact]
+    public async Task GetCategories_ShouldReturnOk_WithSeededCategory()
+    {
+        var response = await _client.GetAsync("/api/admin/categories");
+        var payload = await response.Content.ReadFromJsonAsync<GetCategoriesContract>();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        payload.Should().NotBeNull();
+        payload!.Items.Should().Contain(x => x.Slug == "dc-batman");
+    }
+
+    [Fact]
+    public async Task GetCategories_ShouldFilterBySearch()
+    {
+        var response = await _client.GetAsync("/api/admin/categories?search=bat");
+        var payload = await response.Content.ReadFromJsonAsync<GetCategoriesContract>();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        payload.Should().NotBeNull();
+        payload!.Items.Should().ContainSingle(x => x.Slug == "dc-batman");
+    }
+
+    [Fact]
     public async Task GetAdminProductById_ShouldReturnOk()
     {
         var productsResponse = await _client.GetFromJsonAsync<GetProductsContract>("/api/admin/products");
@@ -66,6 +88,8 @@ public class AdminCatalogEndpointsTests : IClassFixture<TestApiFactory>
     }
 
     private sealed record GetProductsContract(IReadOnlyList<ProductContract> Items);
+    private sealed record GetCategoriesContract(IReadOnlyList<CategoryContract> Items);
 
     private sealed record ProductContract(Guid Id, string Slug);
+    private sealed record CategoryContract(Guid Id, string Name, string Slug);
 }
