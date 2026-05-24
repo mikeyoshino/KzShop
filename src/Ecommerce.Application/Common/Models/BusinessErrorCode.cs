@@ -10,7 +10,9 @@ public enum BusinessErrorCode
     ProductNotFound,
     InventoryNotFound,
     InvalidStatusTransition,
+    PersistenceFailed,
     StorageUploadFailed,
     StorageDeleteFailed,
+    StorageCompensationFailed,
     ValidationFailed
 }

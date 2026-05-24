@@ -129,6 +129,29 @@ public class UploadProductImageHandlerTests
         response.IsFailure.Should().BeTrue();
         response.ErrorCode.Should().Be(BusinessErrorCode.StorageUploadFailed);
     }
+
+    [Fact]
+    public async Task Handle_ShouldCompensateStorageUpload_WhenPersistenceFails()
+    {
+        await using var context = ProductImagesTestApplicationDbContextFactory.CreateWithProductOnly(throwOnSave: true);
+        var storage = new FakeStorageService { UploadResult = "products/63333333/new-image.jpg" };
+        var handler = new UploadProductImageHandler(context, storage);
+        await using var content = new MemoryStream([1, 2, 3]);
+
+        var response = await handler.Handle(
+            new UploadProductImageCommand(
+                ProductImagesTestData.DarkKnightProductId,
+                "new-image.jpg",
+                "image/jpeg",
+                content,
+                "front view"),
+            CancellationToken.None);
+
+        response.IsFailure.Should().BeTrue();
+        response.ErrorCode.Should().Be(BusinessErrorCode.PersistenceFailed);
+        storage.DeletedPaths.Should().ContainSingle()
+            .Which.Should().Be("products/63333333/new-image.jpg");
+    }
 }
 
 public class DeleteProductImageHandlerTests
@@ -177,7 +200,25 @@ public class DeleteProductImageHandlerTests
         response.IsFailure.Should().BeTrue();
         response.ErrorCode.Should().Be(BusinessErrorCode.StorageDeleteFailed);
         (await context.ProductImages.AnyAsync(x => x.Id == ProductImagesTestData.DetailImageId))
-            .Should().BeTrue();
+            .Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotDeleteStorage_WhenPersistenceFails()
+    {
+        await using var context = ProductImagesTestApplicationDbContextFactory.CreateWithProductAndImages(throwOnSave: true);
+        var storage = new FakeStorageService();
+        var handler = new DeleteProductImageHandler(context, storage);
+
+        var response = await handler.Handle(
+            new DeleteProductImageCommand(
+                ProductImagesTestData.DarkKnightProductId,
+                ProductImagesTestData.DetailImageId),
+            CancellationToken.None);
+
+        response.IsFailure.Should().BeTrue();
+        response.ErrorCode.Should().Be(BusinessErrorCode.PersistenceFailed);
+        storage.DeletedPaths.Should().BeEmpty();
     }
 }
 
@@ -193,7 +234,7 @@ internal static class ProductImagesTestData
 
 internal static class ProductImagesTestApplicationDbContextFactory
 {
-    public static ProductImagesTestApplicationDbContext CreateWithProductAndImages()
+    public static ProductImagesTestApplicationDbContext CreateWithProductAndImages(bool throwOnSave = false)
     {
         var context = CreateBaseContext();
         var product = SeedProduct(context);
@@ -205,16 +246,18 @@ internal static class ProductImagesTestApplicationDbContextFactory
 
         context.SaveChanges();
         context.ChangeTracker.Clear();
+        context.ThrowOnSave = throwOnSave;
 
         return context;
     }
 
-    public static ProductImagesTestApplicationDbContext CreateWithProductOnly()
+    public static ProductImagesTestApplicationDbContext CreateWithProductOnly(bool throwOnSave = false)
     {
         var context = CreateBaseContext();
         _ = SeedProduct(context);
         context.SaveChanges();
         context.ChangeTracker.Clear();
+        context.ThrowOnSave = throwOnSave;
         return context;
     }
 
@@ -287,12 +330,24 @@ internal sealed class ProductImagesTestApplicationDbContext : DbContext, IApplic
     {
     }
 
+    public bool ThrowOnSave { get; set; }
+
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Studio> Studios => Set<Studio>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<ProductSpecification> ProductSpecifications => Set<ProductSpecification>();
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        if (ThrowOnSave)
+        {
+            throw new DbUpdateException("Simulated persistence failure.");
+        }
+
+        return base.SaveChangesAsync(cancellationToken);
+    }
 }
 
 internal sealed class FakeStorageService : IStorageService

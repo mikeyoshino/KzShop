@@ -40,17 +40,6 @@ public class DeleteProductImageHandler : IRequestHandler<DeleteProductImageComma
                 "Image was not found for this product.");
         }
 
-        try
-        {
-            await _storageService.DeleteAsync(imageToDelete.PublicUrl, cancellationToken);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            return Result.Failure<DeleteProductImageResponse>(
-                BusinessErrorCode.StorageDeleteFailed,
-                $"Image delete failed: {ex.Message}");
-        }
-
         _context.ProductImages.Remove(imageToDelete);
 
         var remainingImages = images
@@ -64,11 +53,36 @@ public class DeleteProductImageHandler : IRequestHandler<DeleteProductImageComma
             remainingImages[index].UpdateSortOrder(index);
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception ex) when (IsPersistenceException(ex))
+        {
+            return Result.Failure<DeleteProductImageResponse>(
+                BusinessErrorCode.PersistenceFailed,
+                "Image delete persistence failed.");
+        }
+
+        try
+        {
+            await _storageService.DeleteAsync(imageToDelete.PublicUrl, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return Result.Failure<DeleteProductImageResponse>(
+                BusinessErrorCode.StorageDeleteFailed,
+                "Image deleted from database but storage cleanup failed.");
+        }
 
         return Result.Success(new DeleteProductImageResponse(
             request.ProductId,
             request.ProductImageId,
             remainingImages.Count));
+    }
+
+    private static bool IsPersistenceException(Exception ex)
+    {
+        return ex is DbUpdateException or DbUpdateConcurrencyException or TimeoutException;
     }
 }

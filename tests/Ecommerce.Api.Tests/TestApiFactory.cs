@@ -1,5 +1,6 @@
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -41,6 +42,8 @@ public class TestApiFactory : WebApplicationFactory<Program>
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseInMemoryDatabase(_databaseName));
+            services.RemoveAll(typeof(IStorageService));
+            services.AddSingleton<IStorageService, FakeStorageService>();
             services.AddSingleton<TestCatalogSeeder>();
             services.AddHostedService(provider => provider.GetRequiredService<TestCatalogSeeder>());
         });
@@ -107,5 +110,18 @@ internal static class TestApiFactorySeed
         dbContext.Studios.Add(studio);
         dbContext.Products.Add(product);
         dbContext.SaveChanges();
+    }
+}
+
+internal sealed class FakeStorageService : IStorageService
+{
+    public Task<string> UploadAsync(string objectPath, Stream content, string contentType, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult($"/storage/{objectPath}");
+    }
+
+    public Task DeleteAsync(string objectPath, CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
     }
 }

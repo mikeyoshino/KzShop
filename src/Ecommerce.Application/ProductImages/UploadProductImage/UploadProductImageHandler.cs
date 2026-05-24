@@ -66,7 +66,7 @@ public class UploadProductImageHandler : IRequestHandler<UploadProductImageComma
         {
             return Result.Failure<UploadProductImageResponse>(
                 BusinessErrorCode.StorageUploadFailed,
-                $"Image upload failed: {ex.Message}");
+                "Image upload failed.");
         }
 
         product.AddImage(uploadedPath, request.AltText, nextSortOrder);
@@ -74,7 +74,27 @@ public class UploadProductImageHandler : IRequestHandler<UploadProductImageComma
             .Single(x => x.SortOrder == nextSortOrder && x.PublicUrl == uploadedPath);
         _context.ProductImages.Add(createdImage);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception ex) when (IsPersistenceException(ex))
+        {
+            try
+            {
+                await _storageService.DeleteAsync(uploadedPath, cancellationToken);
+            }
+            catch (Exception compensationEx) when (compensationEx is not OperationCanceledException)
+            {
+                return Result.Failure<UploadProductImageResponse>(
+                    BusinessErrorCode.StorageCompensationFailed,
+                    "Image persistence failed and uploaded file cleanup also failed.");
+            }
+
+            return Result.Failure<UploadProductImageResponse>(
+                BusinessErrorCode.PersistenceFailed,
+                "Image persistence failed.");
+        }
 
         return Result.Success(new UploadProductImageResponse(
             createdImage.Id,
@@ -104,5 +124,10 @@ public class UploadProductImageHandler : IRequestHandler<UploadProductImageComma
         }
 
         return $"products/{productId:D}/{Guid.NewGuid():N}-{sanitizedFileName}";
+    }
+
+    private static bool IsPersistenceException(Exception ex)
+    {
+        return ex is DbUpdateException or DbUpdateConcurrencyException or TimeoutException;
     }
 }
