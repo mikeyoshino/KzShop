@@ -10,6 +10,39 @@
 
 ---
 
+## Error Handling Convention
+
+Business logic failures must return structured business error codes, not `InvalidOperationException`.
+
+Required pattern for all remaining tasks in this plan:
+
+- Create a shared enum in application layer:
+  - `src/Ecommerce.Application/Common/Models/BusinessErrorCode.cs`
+- Create a shared result wrapper:
+  - `src/Ecommerce.Application/Common/Models/Result.cs`
+  - `Result<T>` contains:
+    - `bool IsSuccess`
+    - `T? Data`
+    - `BusinessErrorCode? ErrorCode`
+    - `string? ErrorMessage`
+- Handlers must return `Result<T>` and map business failures to enum codes.
+- Controllers must map error codes to HTTP responses (for example: `Conflict`, `NotFound`, `BadRequest`) without inspecting exception strings.
+- Reserve exceptions for unexpected system failures only (I/O, infra, programming errors), not expected business rule violations.
+
+Initial business error codes (extend as needed):
+
+- `DuplicateSlug`
+- `DuplicateName`
+- `DuplicateSku`
+- `CategoryNotFound`
+- `StudioNotFound`
+- `ProductNotFound`
+- `InventoryNotFound`
+- `InvalidStatusTransition`
+- `StorageUploadFailed`
+- `StorageDeleteFailed`
+- `ValidationFailed`
+
 ## Scope Split
 
 This plan covers:
@@ -106,6 +139,17 @@ This plan does not cover:
 - [ ] **Step 5: Add required storage env vars to `.env.example`**
 - [ ] **Step 6: Run `dotnet build ToyShops.sln`**
 - [ ] **Step 7: Commit with `feat: add supabase storage infrastructure`**
+
+## Task 1.5: Introduce shared business-error result model
+
+**Files:**
+- Create: `src/Ecommerce.Application/Common/Models/BusinessErrorCode.cs`
+- Create: `src/Ecommerce.Application/Common/Models/Result.cs`
+
+- [ ] **Step 1: Add `BusinessErrorCode` enum with baseline error values**
+- [ ] **Step 2: Add `Result` and `Result<T>` helpers for success/failure creation**
+- [ ] **Step 3: Run `dotnet build ToyShops.sln`**
+- [ ] **Step 4: Commit with `feat: add business error result primitives`**
 
 ## Task 2: Implement studio write/search slices
 
@@ -225,6 +269,21 @@ Expected: all pass.
 
 - [ ] **Step 3: Commit with `docs: update admin catalog setup notes`**
 
+## Task 9: Refactor implemented write slices to enum-based business errors
+
+**Files:**
+- Modify: `src/Ecommerce.Application/Studios/**`
+- Modify: `src/Ecommerce.Application/Categories/**`
+- Modify: `src/Ecommerce.Application/Products/**`
+- Modify: `src/Ecommerce.Api/Controllers/Admin*.cs` (when introduced in Task 6)
+- Modify: `tests/Ecommerce.Application.Tests/**` and `tests/Ecommerce.Api.Tests/**` as needed
+
+- [ ] **Step 1: Replace `InvalidOperationException` business failures with `Result<T>` + `BusinessErrorCode`**
+- [ ] **Step 2: Update validators/handlers/tests to assert error codes instead of exception messages**
+- [ ] **Step 3: Update admin controllers to map error codes to HTTP status consistently**
+- [ ] **Step 4: Run full verification**
+- [ ] **Step 5: Commit with `refactor: standardize business errors to enum codes`**
+
 ## Self-Review
 
 Spec coverage:
@@ -236,4 +295,3 @@ No placeholders:
 
 Type consistency:
 - Uses existing naming conventions: feature folders with Command/Handler/Validator/Response, plus Query/Handler/Response where applicable.
-
