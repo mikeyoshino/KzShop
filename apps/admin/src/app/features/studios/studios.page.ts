@@ -7,50 +7,8 @@ import { CatalogApiService } from '../../core/services/catalog-api.service';
   selector: 'app-studios-page',
   standalone: true,
   imports: [FormsModule],
-  template: `
-    <section class="page-stack">
-      <section class="panel products-panel">
-        <div>
-          <p class="section-label">Studios</p>
-          <h2>Create studio</h2>
-        </div>
-
-        <div class="form-grid">
-          <input [(ngModel)]="name" placeholder="Studio name" />
-          <input [(ngModel)]="slug" placeholder="studio-slug" />
-          <label class="checkbox-line">
-            <input type="checkbox" [(ngModel)]="isActive" />
-            <span>Active</span>
-          </label>
-          <button class="button-primary" type="button" (click)="createStudio()">Create</button>
-        </div>
-        @if (message) {
-          <p>{{ message }}</p>
-        }
-      </section>
-
-      <section class="panel products-panel">
-        <div class="toolbar">
-          <input [(ngModel)]="search" (ngModelChange)="refreshStudios()" placeholder="Search studio" />
-        </div>
-
-        <div class="list-panel">
-          @for (studio of studios; track studio.id) {
-            <div class="list-row">
-              <div>
-                <strong>{{ studio.name }}</strong>
-                <p>{{ studio.slug }}</p>
-              </div>
-              <span class="badge">{{ studio.isActive ? 'Active' : 'Inactive' }}</span>
-              <small></small>
-            </div>
-          } @empty {
-            <div class="list-empty">No studios found.</div>
-          }
-        </div>
-      </section>
-    </section>
-  `,
+  templateUrl: './studios.page.html',
+  styleUrl: './studios.page.css',
 })
 export class StudiosPageComponent {
   private readonly api = inject(CatalogApiService);

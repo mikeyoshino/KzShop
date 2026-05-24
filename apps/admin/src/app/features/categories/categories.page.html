@@ -1,0 +1,62 @@
+<section class="page-stack">
+  <section class="panel products-panel">
+    <div>
+      <p class="section-label">Categories</p>
+      <h2>Create category</h2>
+    </div>
+    <div class="form-grid">
+      <input [(ngModel)]="name" placeholder="Category name" />
+      <input [(ngModel)]="slug" placeholder="category-slug" />
+      <input [(ngModel)]="description" placeholder="Description" />
+      <label class="checkbox-line">
+        <input type="checkbox" [(ngModel)]="isActive" />
+        <span>Active</span>
+      </label>
+      <button class="button-primary" type="button" (click)="createCategory()">Create</button>
+    </div>
+    @if (message) {
+      <p>{{ message }}</p>
+    }
+  </section>
+
+  <section class="panel products-panel">
+    <div class="toolbar">
+      <input [(ngModel)]="search" (ngModelChange)="refreshCategories()" placeholder="Search category" />
+    </div>
+    <div>
+      <p class="section-label">Managed list</p>
+      <h2>Categories</h2>
+    </div>
+    @for (category of categories; track category.id) {
+      <div class="list-row">
+        <div>
+          <strong>{{ category.name }}</strong>
+          <p>{{ category.slug }}</p>
+        </div>
+        <span class="badge">{{ category.isActive ? 'Active' : 'Inactive' }}</span>
+        <button type="button" (click)="edit(category)">Edit</button>
+      </div>
+    } @empty {
+      <div class="list-empty">No categories.</div>
+    }
+  </section>
+
+  @if (editing) {
+    <section class="panel products-panel">
+      <div>
+        <p class="section-label">Update</p>
+        <h2>{{ editing.name }}</h2>
+      </div>
+      <div class="form-grid">
+        <input [(ngModel)]="editName" placeholder="Category name" />
+        <input [(ngModel)]="editSlug" placeholder="category-slug" />
+        <input [(ngModel)]="editDescription" placeholder="Description" />
+        <label class="checkbox-line">
+          <input type="checkbox" [(ngModel)]="editIsActive" />
+          <span>Active</span>
+        </label>
+        <button class="button-primary" type="button" (click)="updateCategory()">Save</button>
+      </div>
+    </section>
+  }
+</section>
