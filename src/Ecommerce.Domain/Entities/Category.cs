@@ -34,4 +34,22 @@ public class Category : BaseEntity
     public string Description { get; private set; } = string.Empty;
 
     public bool IsActive { get; private set; }
+
+    public void Update(string name, string slug, string description, bool isActive)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new DomainException("Category name is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(slug))
+        {
+            throw new DomainException("Category slug is required.");
+        }
+
+        Name = name.Trim();
+        Slug = slug.Trim().ToLowerInvariant();
+        Description = description?.Trim() ?? string.Empty;
+        IsActive = isActive;
+    }
 }

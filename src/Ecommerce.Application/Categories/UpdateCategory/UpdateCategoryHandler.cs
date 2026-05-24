@@ -42,16 +42,7 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Upda
             throw new InvalidOperationException("Category name already exists.");
         }
 
-        if (_context is not DbContext dbContext)
-        {
-            throw new InvalidOperationException("Category updates require a DbContext-backed application context.");
-        }
-
-        var entry = dbContext.Entry(category);
-        entry.Property(x => x.Name).CurrentValue = normalizedName;
-        entry.Property(x => x.Slug).CurrentValue = normalizedSlug;
-        entry.Property(x => x.Description).CurrentValue = normalizedDescription;
-        entry.Property(x => x.IsActive).CurrentValue = request.IsActive;
+        category.Update(normalizedName, normalizedSlug, normalizedDescription, request.IsActive);
 
         await _context.SaveChangesAsync(cancellationToken);
 

@@ -108,6 +108,19 @@ public class UpdateCategoryHandlerTests
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Category name already exists.");
     }
+
+    [Fact]
+    public async Task Handle_ShouldThrow_WhenCategoryDoesNotExist()
+    {
+        await using var context = CategoryTestApplicationDbContextFactory.CreateWithCategories();
+        var handler = new UpdateCategoryHandler(context);
+        var command = new UpdateCategoryCommand(Guid.NewGuid(), "Name", "name", "desc", true);
+
+        var act = async () => await handler.Handle(command, CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Category was not found.");
+    }
 }
 
 public class CategoryValidatorsTests
@@ -136,6 +149,49 @@ public class CategoryValidatorsTests
         var result = validator.TestValidate(new CreateCategoryCommand("Collectibles", slug, "desc", true));
 
         result.ShouldHaveValidationErrorFor(x => x.Slug);
+    }
+
+    [Fact]
+    public void UpdateValidator_ShouldHaveError_WhenIdIsEmpty()
+    {
+        var validator = new UpdateCategoryValidator();
+
+        var result = validator.TestValidate(new UpdateCategoryCommand(Guid.Empty, "Name", "name", "desc", true));
+
+        result.ShouldHaveValidationErrorFor(x => x.Id);
+    }
+
+    [Fact]
+    public void UpdateValidator_ShouldHaveError_WhenNameExceedsMaxLength()
+    {
+        var validator = new UpdateCategoryValidator();
+        var name = new string('n', 121);
+
+        var result = validator.TestValidate(new UpdateCategoryCommand(Guid.NewGuid(), name, "name", "desc", true));
+
+        result.ShouldHaveValidationErrorFor(x => x.Name);
+    }
+
+    [Fact]
+    public void UpdateValidator_ShouldHaveError_WhenSlugExceedsMaxLength()
+    {
+        var validator = new UpdateCategoryValidator();
+        var slug = new string('a', 161);
+
+        var result = validator.TestValidate(new UpdateCategoryCommand(Guid.NewGuid(), "Name", slug, "desc", true));
+
+        result.ShouldHaveValidationErrorFor(x => x.Slug);
+    }
+
+    [Fact]
+    public void UpdateValidator_ShouldHaveError_WhenDescriptionExceedsMaxLength()
+    {
+        var validator = new UpdateCategoryValidator();
+        var description = new string('d', 501);
+
+        var result = validator.TestValidate(new UpdateCategoryCommand(Guid.NewGuid(), "Name", "name", description, true));
+
+        result.ShouldHaveValidationErrorFor(x => x.Description);
     }
 }
 
