@@ -34,4 +34,14 @@ public class ProductImage : BaseEntity
     public string AltText { get; private set; } = string.Empty;
 
     public int SortOrder { get; private set; }
+
+    public void UpdateSortOrder(int sortOrder)
+    {
+        if (sortOrder < 0)
+        {
+            throw new DomainException("Product image sort order cannot be negative.");
+        }
+
+        SortOrder = sortOrder;
+    }
 }
