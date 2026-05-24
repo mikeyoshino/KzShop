@@ -1,4 +1,5 @@
 using FluentValidation;
+using Ecommerce.Domain.Enums;
 
 namespace Ecommerce.Application.Products.CreateProduct;
 
@@ -57,7 +58,9 @@ public class CreateProductValidator : AbstractValidator<CreateProductCommand>
             .MaximumLength(128);
 
         RuleFor(x => x.Status)
-            .IsInEnum();
+            .IsInEnum()
+            .Must(status => status != ProductStatus.Archived)
+            .WithMessage("Archived status can only be set through archive workflow.");
 
         RuleForEach(x => x.Specifications)
             .SetValidator(new CreateProductSpecificationInputValidator());

@@ -20,12 +20,10 @@ public class GetAdminProductByIdHandler : IRequestHandler<GetAdminProductByIdQue
             return null;
         }
 
-        var productProjection = await (
-            from product in _context.Products.AsNoTracking()
-            join category in _context.Categories.AsNoTracking() on product.CategoryId equals category.Id
-            join studio in _context.Studios.AsNoTracking() on product.StudioId equals studio.Id
-            where product.Id == request.Id
-            select new
+        var productProjection = await _context.Products
+            .AsNoTracking()
+            .Where(product => product.Id == request.Id)
+            .Select(product => new
             {
                 product.Id,
                 product.Name,
@@ -33,9 +31,7 @@ public class GetAdminProductByIdHandler : IRequestHandler<GetAdminProductByIdQue
                 product.ShortDescription,
                 product.Description,
                 product.CategoryId,
-                CategoryName = category.Name,
                 product.StudioId,
-                StudioName = studio.Name,
                 product.Sku,
                 product.PriceAmount,
                 product.Currency,
@@ -49,12 +45,25 @@ public class GetAdminProductByIdHandler : IRequestHandler<GetAdminProductByIdQue
                 product.EstimatedReleaseText,
                 product.PublishedAt,
                 product.ArchivedAt
-            }).SingleOrDefaultAsync(cancellationToken);
+            })
+            .SingleOrDefaultAsync(cancellationToken);
 
         if (productProjection is null)
         {
             return null;
         }
+
+        var categoryName = await _context.Categories
+            .AsNoTracking()
+            .Where(x => x.Id == productProjection.CategoryId)
+            .Select(x => x.Name)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        var studioName = await _context.Studios
+            .AsNoTracking()
+            .Where(x => x.Id == productProjection.StudioId)
+            .Select(x => x.Name)
+            .SingleOrDefaultAsync(cancellationToken);
 
         var images = await _context.ProductImages
             .AsNoTracking()
@@ -83,9 +92,9 @@ public class GetAdminProductByIdHandler : IRequestHandler<GetAdminProductByIdQue
             productProjection.ShortDescription,
             productProjection.Description,
             productProjection.CategoryId,
-            productProjection.CategoryName,
+            categoryName ?? string.Empty,
             productProjection.StudioId,
-            productProjection.StudioName,
+            studioName ?? string.Empty,
             productProjection.Sku,
             productProjection.PriceAmount,
             productProjection.Currency,
