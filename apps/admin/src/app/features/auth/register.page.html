@@ -1,0 +1,13 @@
+<section class="auth-shell">
+  <article class="panel auth-panel">
+    <p class="section-label">Admin Register</p>
+    <h2>Create account</h2>
+    <input [(ngModel)]="email" type="email" placeholder="Email" />
+    <input [(ngModel)]="password" type="password" placeholder="Password" />
+    <button class="button-primary" type="button" (click)="submit()">Register</button>
+    @if (error) {
+      <p>{{ error }}</p>
+    }
+    <a routerLink="/login">Back to login</a>
+  </article>
+</section>

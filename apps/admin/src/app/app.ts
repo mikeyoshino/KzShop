@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, computed, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { SupabaseAuthService } from './core/services/supabase-auth.service';
 
 @Component({
   selector: 'app-root',
@@ -36,6 +37,9 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
           <div class="admin-header__meta">
             <span>Supabase ready</span>
             <span>Stripe planned</span>
+            @if (isAuthenticated()) {
+              <button type="button" (click)="signOut()">Sign out</button>
+            }
           </div>
         </header>
 
@@ -46,4 +50,13 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
     </div>
   `,
 })
-export class App {}
+export class App {
+  private readonly auth = inject(SupabaseAuthService);
+  private readonly router = inject(Router);
+  protected readonly isAuthenticated = computed(() => this.auth.isAuthenticated());
+
+  protected async signOut(): Promise<void> {
+    await this.auth.signOut();
+    await this.router.navigate(['/login']);
+  }
+}
