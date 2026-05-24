@@ -31,8 +31,7 @@ public static class DependencyInjection
             .Validate(options =>
                 Uri.TryCreate(options.Url, UriKind.Absolute, out var storageUri) &&
                 (storageUri.Scheme == Uri.UriSchemeHttp || storageUri.Scheme == Uri.UriSchemeHttps),
-                "Storage Url must be a valid absolute HTTP or HTTPS URI.")
-            .ValidateOnStart();
+                "Storage Url must be a valid absolute HTTP or HTTPS URI.");
 
         services.AddHttpClient<IStorageService, SupabaseStorageService>((provider, client) =>
         {

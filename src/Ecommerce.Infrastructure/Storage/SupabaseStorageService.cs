@@ -13,6 +13,7 @@ public sealed class SupabaseStorageService : IStorageService
     {
         _httpClient = httpClient;
         _options = options.Value;
+        EnsureStorageOptionsAreValid(_options);
     }
 
     public async Task<string> UploadAsync(
@@ -75,5 +76,30 @@ public sealed class SupabaseStorageService : IStorageService
     {
         request.Headers.Add("apikey", _options.Key);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.Key);
+    }
+
+    private static void EnsureStorageOptionsAreValid(StorageOptions options)
+    {
+        if (string.IsNullOrWhiteSpace(options.Url))
+        {
+            throw new InvalidOperationException("Storage configuration error: Storage:Url is required.");
+        }
+
+        if (!Uri.TryCreate(options.Url, UriKind.Absolute, out var storageUri) ||
+            (storageUri.Scheme != Uri.UriSchemeHttp && storageUri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new InvalidOperationException(
+                "Storage configuration error: Storage:Url must be a valid absolute HTTP or HTTPS URI.");
+        }
+
+        if (string.IsNullOrWhiteSpace(options.Key))
+        {
+            throw new InvalidOperationException("Storage configuration error: Storage:Key is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(options.Bucket))
+        {
+            throw new InvalidOperationException("Storage configuration error: Storage:Bucket is required.");
+        }
     }
 }
