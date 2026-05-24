@@ -20,6 +20,9 @@ ToyShops is a monorepo for an ecommerce platform with:
    - `Supabase__Url`
    - `Supabase__AnonKey`
    - `Supabase__JwtIssuer`
+   - `Storage__Url`
+   - `Storage__Key`
+   - `Storage__Bucket`
    - `Stripe__SecretKey`
    - `Stripe__WebhookSecret`
 3. Keep the documented frontend API target in `.env` aligned with the local API launch profile:
