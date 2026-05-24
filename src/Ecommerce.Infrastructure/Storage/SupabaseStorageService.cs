@@ -21,6 +21,16 @@ public sealed class SupabaseStorageService : IStorageService
         string contentType,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(objectPath))
+        {
+            throw new ArgumentException("Object path is required.", nameof(objectPath));
+        }
+
+        if (string.IsNullOrWhiteSpace(contentType))
+        {
+            throw new ArgumentException("Content type is required.", nameof(contentType));
+        }
+
         var request = new HttpRequestMessage(HttpMethod.Post, BuildObjectUri(objectPath))
         {
             Content = new StreamContent(content)
@@ -38,6 +48,11 @@ public sealed class SupabaseStorageService : IStorageService
 
     public async Task DeleteAsync(string objectPath, CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(objectPath))
+        {
+            throw new ArgumentException("Object path is required.", nameof(objectPath));
+        }
+
         var request = new HttpRequestMessage(HttpMethod.Delete, BuildObjectUri(objectPath));
         AddAuthHeaders(request);
 
@@ -51,7 +66,7 @@ public sealed class SupabaseStorageService : IStorageService
         var escapedBucket = Uri.EscapeDataString(_options.Bucket);
         var escapedPath = string.Join(
             '/',
-            objectPath.Split('/', StringSplitOptions.RemoveEmptyEntries).Select(Uri.EscapeDataString));
+            objectPath.Split('/').Select(Uri.EscapeDataString));
 
         return new Uri($"{baseUrl}/storage/v1/object/{escapedBucket}/{escapedPath}");
     }

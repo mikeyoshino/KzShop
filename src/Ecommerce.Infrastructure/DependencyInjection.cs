@@ -28,6 +28,10 @@ public static class DependencyInjection
                 !string.IsNullOrWhiteSpace(options.Key) &&
                 !string.IsNullOrWhiteSpace(options.Bucket),
                 "Storage options Url, Key, and Bucket are required.")
+            .Validate(options =>
+                Uri.TryCreate(options.Url, UriKind.Absolute, out var storageUri) &&
+                (storageUri.Scheme == Uri.UriSchemeHttp || storageUri.Scheme == Uri.UriSchemeHttps),
+                "Storage Url must be a valid absolute HTTP or HTTPS URI.")
             .ValidateOnStart();
 
         services.AddHttpClient<IStorageService, SupabaseStorageService>((provider, client) =>
