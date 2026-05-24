@@ -1,4 +1,5 @@
 using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Infrastructure.Auth;
 using Ecommerce.Infrastructure.Persistence;
 using Ecommerce.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,9 @@ public static class DependencyInjection
 
         services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+        services
+            .AddOptions<SupabaseJwtOptions>()
+            .Bind(configuration.GetSection(SupabaseJwtOptions.SectionName));
         services
             .AddOptions<StorageOptions>()
             .Bind(configuration.GetSection(StorageOptions.SectionName))

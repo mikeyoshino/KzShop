@@ -1,9 +1,11 @@
 using Ecommerce.Application.Common.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "AdminOnly")]
 public abstract class AdminApiControllerBase : ControllerBase
 {
     protected ActionResult MapFailure(Result result)
