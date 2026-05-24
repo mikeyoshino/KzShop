@@ -67,8 +67,8 @@ export class SupabaseAuthService {
       return null;
     }
 
-    const url = (globalThis as { __supabaseUrl?: string }).__supabaseUrl ?? '';
-    const anonKey = (globalThis as { __supabaseAnonKey?: string }).__supabaseAnonKey ?? '';
+    const url = window.__supabaseUrl ?? '';
+    const anonKey = window.__supabaseAnonKey ?? '';
     if (!url || !anonKey) {
       return null;
     }
