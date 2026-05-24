@@ -1,3 +1,4 @@
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Enums;
 using MediatR;
 
@@ -21,7 +22,7 @@ public record CreateProductCommand(
     string DimensionsText,
     string EditionSize,
     string EstimatedReleaseText,
-    IReadOnlyList<CreateProductSpecificationInput> Specifications) : IRequest<CreateProductResponse>;
+    IReadOnlyList<CreateProductSpecificationInput> Specifications) : IRequest<Result<CreateProductResponse>>;
 
 public record CreateProductSpecificationInput(
     string Label,

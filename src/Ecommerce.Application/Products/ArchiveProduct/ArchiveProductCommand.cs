@@ -1,5 +1,6 @@
+using Ecommerce.Application.Common.Models;
 using MediatR;
 
 namespace Ecommerce.Application.Products.ArchiveProduct;
 
-public record ArchiveProductCommand(Guid Id) : IRequest<ArchiveProductResponse>;
+public record ArchiveProductCommand(Guid Id) : IRequest<Result<ArchiveProductResponse>>;

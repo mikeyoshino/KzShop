@@ -1,3 +1,4 @@
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Enums;
 using MediatR;
 
@@ -22,7 +23,7 @@ public record UpdateProductCommand(
     string DimensionsText,
     string EditionSize,
     string EstimatedReleaseText,
-    IReadOnlyList<UpdateProductSpecificationInput> Specifications) : IRequest<UpdateProductResponse>;
+    IReadOnlyList<UpdateProductSpecificationInput> Specifications) : IRequest<Result<UpdateProductResponse>>;
 
 public record UpdateProductSpecificationInput(
     string Label,

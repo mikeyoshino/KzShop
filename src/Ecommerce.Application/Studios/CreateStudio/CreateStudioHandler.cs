@@ -1,3 +1,4 @@
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Domain.Entities;
 using MediatR;
@@ -5,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Studios.CreateStudio;
 
-public class CreateStudioHandler : IRequestHandler<CreateStudioCommand, CreateStudioResponse>
+public class CreateStudioHandler : IRequestHandler<CreateStudioCommand, Result<CreateStudioResponse>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -14,7 +15,7 @@ public class CreateStudioHandler : IRequestHandler<CreateStudioCommand, CreateSt
         _context = context;
     }
 
-    public async Task<CreateStudioResponse> Handle(CreateStudioCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CreateStudioResponse>> Handle(CreateStudioCommand request, CancellationToken cancellationToken)
     {
         var normalizedSlug = request.Slug.Trim().ToLowerInvariant();
         var normalizedName = request.Name.Trim();
@@ -24,7 +25,7 @@ public class CreateStudioHandler : IRequestHandler<CreateStudioCommand, CreateSt
             .AnyAsync(x => x.Slug == normalizedSlug, cancellationToken);
         if (hasDuplicateSlug)
         {
-            throw new InvalidOperationException("Studio slug already exists.");
+            return Result.Failure<CreateStudioResponse>(BusinessErrorCode.DuplicateSlug, "Studio slug already exists.");
         }
 
         var hasDuplicateName = await _context.Studios
@@ -32,7 +33,7 @@ public class CreateStudioHandler : IRequestHandler<CreateStudioCommand, CreateSt
             .AnyAsync(x => x.Name == normalizedName, cancellationToken);
         if (hasDuplicateName)
         {
-            throw new InvalidOperationException("Studio name already exists.");
+            return Result.Failure<CreateStudioResponse>(BusinessErrorCode.DuplicateName, "Studio name already exists.");
         }
 
         var studio = new Studio(normalizedName, normalizedSlug, request.IsActive);
@@ -44,14 +45,14 @@ public class CreateStudioHandler : IRequestHandler<CreateStudioCommand, CreateSt
         }
         catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex, "Slug"))
         {
-            throw new InvalidOperationException("Studio slug already exists.", ex);
+            return Result.Failure<CreateStudioResponse>(BusinessErrorCode.DuplicateSlug, "Studio slug already exists.");
         }
         catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex, "Name"))
         {
-            throw new InvalidOperationException("Studio name already exists.", ex);
+            return Result.Failure<CreateStudioResponse>(BusinessErrorCode.DuplicateName, "Studio name already exists.");
         }
 
-        return new CreateStudioResponse(studio.Id, studio.Name, studio.Slug, studio.IsActive);
+        return Result.Success(new CreateStudioResponse(studio.Id, studio.Name, studio.Slug, studio.IsActive));
     }
 
     private static bool IsUniqueConstraintViolation(DbUpdateException exception, string propertyName)

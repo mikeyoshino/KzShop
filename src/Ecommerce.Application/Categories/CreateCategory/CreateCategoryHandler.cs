@@ -1,11 +1,12 @@
 using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Categories.CreateCategory;
 
-public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, CreateCategoryResponse>
+public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Result<CreateCategoryResponse>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -14,7 +15,7 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Crea
         _context = context;
     }
 
-    public async Task<CreateCategoryResponse> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CreateCategoryResponse>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
         var normalizedSlug = request.Slug.Trim().ToLowerInvariant();
         var normalizedName = request.Name.Trim();
@@ -25,7 +26,7 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Crea
             .AnyAsync(x => x.Slug == normalizedSlug, cancellationToken);
         if (hasDuplicateSlug)
         {
-            throw new InvalidOperationException("Category slug already exists.");
+            return Result.Failure<CreateCategoryResponse>(BusinessErrorCode.DuplicateSlug, "Category slug already exists.");
         }
 
         var hasDuplicateName = await _context.Categories
@@ -33,13 +34,13 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Crea
             .AnyAsync(x => x.Name == normalizedName, cancellationToken);
         if (hasDuplicateName)
         {
-            throw new InvalidOperationException("Category name already exists.");
+            return Result.Failure<CreateCategoryResponse>(BusinessErrorCode.DuplicateName, "Category name already exists.");
         }
 
         var category = new Category(normalizedName, normalizedSlug, normalizedDescription, request.IsActive);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new CreateCategoryResponse(category.Id, category.Name, category.Slug, category.Description, category.IsActive);
+        return Result.Success(new CreateCategoryResponse(category.Id, category.Name, category.Slug, category.Description, category.IsActive));
     }
 }

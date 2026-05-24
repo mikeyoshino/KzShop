@@ -1,11 +1,12 @@
 using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Products.CreateProduct;
 
-public class CreateProductHandler : IRequestHandler<CreateProductCommand, CreateProductResponse>
+public class CreateProductHandler : IRequestHandler<CreateProductCommand, Result<CreateProductResponse>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -14,7 +15,7 @@ public class CreateProductHandler : IRequestHandler<CreateProductCommand, Create
         _context = context;
     }
 
-    public async Task<CreateProductResponse> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CreateProductResponse>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         var normalizedSlug = request.Slug.Trim().ToLowerInvariant();
         var normalizedSku = request.Sku.Trim();
@@ -24,7 +25,7 @@ public class CreateProductHandler : IRequestHandler<CreateProductCommand, Create
             .AnyAsync(x => x.Slug == normalizedSlug, cancellationToken);
         if (hasDuplicateSlug)
         {
-            throw new InvalidOperationException("Product slug already exists.");
+            return Result.Failure<CreateProductResponse>(BusinessErrorCode.DuplicateSlug, "Product slug already exists.");
         }
 
         var hasDuplicateSku = await _context.Products
@@ -32,7 +33,7 @@ public class CreateProductHandler : IRequestHandler<CreateProductCommand, Create
             .AnyAsync(x => x.Sku == normalizedSku, cancellationToken);
         if (hasDuplicateSku)
         {
-            throw new InvalidOperationException("Product SKU already exists.");
+            return Result.Failure<CreateProductResponse>(BusinessErrorCode.DuplicateSku, "Product SKU already exists.");
         }
 
         var hasCategory = await _context.Categories
@@ -40,7 +41,7 @@ public class CreateProductHandler : IRequestHandler<CreateProductCommand, Create
             .AnyAsync(x => x.Id == request.CategoryId, cancellationToken);
         if (!hasCategory)
         {
-            throw new InvalidOperationException("Category was not found.");
+            return Result.Failure<CreateProductResponse>(BusinessErrorCode.CategoryNotFound, "Category was not found.");
         }
 
         var hasStudio = await _context.Studios
@@ -48,7 +49,7 @@ public class CreateProductHandler : IRequestHandler<CreateProductCommand, Create
             .AnyAsync(x => x.Id == request.StudioId, cancellationToken);
         if (!hasStudio)
         {
-            throw new InvalidOperationException("Studio was not found.");
+            return Result.Failure<CreateProductResponse>(BusinessErrorCode.StudioNotFound, "Studio was not found.");
         }
 
         var product = Product.Create(
@@ -78,11 +79,11 @@ public class CreateProductHandler : IRequestHandler<CreateProductCommand, Create
         _context.Products.Add(product);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new CreateProductResponse(
+        return Result.Success(new CreateProductResponse(
             product.Id,
             product.Name,
             product.Slug,
             product.Sku,
-            product.Status.ToString());
+            product.Status.ToString()));
     }
 }

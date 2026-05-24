@@ -1,10 +1,11 @@
 using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Products.UpdateProduct;
 
-public class UpdateProductHandler : IRequestHandler<UpdateProductCommand, UpdateProductResponse>
+public class UpdateProductHandler : IRequestHandler<UpdateProductCommand, Result<UpdateProductResponse>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -13,7 +14,7 @@ public class UpdateProductHandler : IRequestHandler<UpdateProductCommand, Update
         _context = context;
     }
 
-    public async Task<UpdateProductResponse> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
+    public async Task<Result<UpdateProductResponse>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
         var normalizedSlug = request.Slug.Trim().ToLowerInvariant();
         var normalizedSku = request.Sku.Trim();
@@ -23,7 +24,7 @@ public class UpdateProductHandler : IRequestHandler<UpdateProductCommand, Update
             .SingleOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
         if (product is null)
         {
-            throw new InvalidOperationException("Product was not found.");
+            return Result.Failure<UpdateProductResponse>(BusinessErrorCode.ProductNotFound, "Product was not found.");
         }
 
         var hasDuplicateSlug = await _context.Products
@@ -31,7 +32,7 @@ public class UpdateProductHandler : IRequestHandler<UpdateProductCommand, Update
             .AnyAsync(x => x.Id != request.Id && x.Slug == normalizedSlug, cancellationToken);
         if (hasDuplicateSlug)
         {
-            throw new InvalidOperationException("Product slug already exists.");
+            return Result.Failure<UpdateProductResponse>(BusinessErrorCode.DuplicateSlug, "Product slug already exists.");
         }
 
         var hasDuplicateSku = await _context.Products
@@ -39,7 +40,7 @@ public class UpdateProductHandler : IRequestHandler<UpdateProductCommand, Update
             .AnyAsync(x => x.Id != request.Id && x.Sku == normalizedSku, cancellationToken);
         if (hasDuplicateSku)
         {
-            throw new InvalidOperationException("Product SKU already exists.");
+            return Result.Failure<UpdateProductResponse>(BusinessErrorCode.DuplicateSku, "Product SKU already exists.");
         }
 
         var hasCategory = await _context.Categories
@@ -47,7 +48,7 @@ public class UpdateProductHandler : IRequestHandler<UpdateProductCommand, Update
             .AnyAsync(x => x.Id == request.CategoryId, cancellationToken);
         if (!hasCategory)
         {
-            throw new InvalidOperationException("Category was not found.");
+            return Result.Failure<UpdateProductResponse>(BusinessErrorCode.CategoryNotFound, "Category was not found.");
         }
 
         var hasStudio = await _context.Studios
@@ -55,7 +56,7 @@ public class UpdateProductHandler : IRequestHandler<UpdateProductCommand, Update
             .AnyAsync(x => x.Id == request.StudioId, cancellationToken);
         if (!hasStudio)
         {
-            throw new InvalidOperationException("Studio was not found.");
+            return Result.Failure<UpdateProductResponse>(BusinessErrorCode.StudioNotFound, "Studio was not found.");
         }
 
         product.Update(
@@ -89,11 +90,11 @@ public class UpdateProductHandler : IRequestHandler<UpdateProductCommand, Update
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new UpdateProductResponse(
+        return Result.Success(new UpdateProductResponse(
             product.Id,
             product.Name,
             product.Slug,
             product.Sku,
-            product.Status.ToString());
+            product.Status.ToString()));
     }
 }

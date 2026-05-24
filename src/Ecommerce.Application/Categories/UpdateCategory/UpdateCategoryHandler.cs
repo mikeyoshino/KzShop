@@ -1,10 +1,11 @@
 using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Categories.UpdateCategory;
 
-public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, UpdateCategoryResponse>
+public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Result<UpdateCategoryResponse>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -13,7 +14,7 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Upda
         _context = context;
     }
 
-    public async Task<UpdateCategoryResponse> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
+    public async Task<Result<UpdateCategoryResponse>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
         var normalizedSlug = request.Slug.Trim().ToLowerInvariant();
         var normalizedName = request.Name.Trim();
@@ -23,7 +24,7 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Upda
             .SingleOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
         if (category is null)
         {
-            throw new InvalidOperationException("Category was not found.");
+            return Result.Failure<UpdateCategoryResponse>(BusinessErrorCode.CategoryNotFound, "Category was not found.");
         }
 
         var hasDuplicateSlug = await _context.Categories
@@ -31,7 +32,7 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Upda
             .AnyAsync(x => x.Id != request.Id && x.Slug == normalizedSlug, cancellationToken);
         if (hasDuplicateSlug)
         {
-            throw new InvalidOperationException("Category slug already exists.");
+            return Result.Failure<UpdateCategoryResponse>(BusinessErrorCode.DuplicateSlug, "Category slug already exists.");
         }
 
         var hasDuplicateName = await _context.Categories
@@ -39,13 +40,13 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Upda
             .AnyAsync(x => x.Id != request.Id && x.Name == normalizedName, cancellationToken);
         if (hasDuplicateName)
         {
-            throw new InvalidOperationException("Category name already exists.");
+            return Result.Failure<UpdateCategoryResponse>(BusinessErrorCode.DuplicateName, "Category name already exists.");
         }
 
         category.Update(normalizedName, normalizedSlug, normalizedDescription, request.IsActive);
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new UpdateCategoryResponse(request.Id, normalizedName, normalizedSlug, normalizedDescription, request.IsActive);
+        return Result.Success(new UpdateCategoryResponse(request.Id, normalizedName, normalizedSlug, normalizedDescription, request.IsActive));
     }
 }

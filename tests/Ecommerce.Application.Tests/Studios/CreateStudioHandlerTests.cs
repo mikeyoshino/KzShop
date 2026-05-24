@@ -1,3 +1,4 @@
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Studios.CreateStudio;
 using Ecommerce.Application.Studios.SearchStudios;
@@ -19,45 +20,45 @@ public class CreateStudioHandlerTests
         var command = new CreateStudioCommand(" Queen Studios ", " QUEEN-STUDIOS ", true);
 
         var response = await handler.Handle(command, CancellationToken.None);
+        response.IsSuccess.Should().BeTrue();
+        response.Value.Should().NotBeNull();
 
-        response.Name.Should().Be("Queen Studios");
-        response.Slug.Should().Be("queen-studios");
-        response.IsActive.Should().BeTrue();
+        response.Value!.Name.Should().Be("Queen Studios");
+        response.Value.Slug.Should().Be("queen-studios");
+        response.Value.IsActive.Should().BeTrue();
 
-        var createdStudio = await context.Studios.SingleAsync(x => x.Id == response.Id);
+        var createdStudio = await context.Studios.SingleAsync(x => x.Id == response.Value.Id);
         createdStudio.Name.Should().Be("Queen Studios");
         createdStudio.Slug.Should().Be("queen-studios");
         createdStudio.IsActive.Should().BeTrue();
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenSlugAlreadyExists()
+    public async Task Handle_ShouldReturnFailure_WhenSlugAlreadyExists()
     {
         await using var context = StudioTestApplicationDbContextFactory.CreateWithStudios();
         var handler = new CreateStudioHandler(context);
         var command = new CreateStudioCommand("Another Studio", "prime-studios", true);
 
-        var act = async () => await handler.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Studio slug already exists.");
+        var response = await handler.Handle(command, CancellationToken.None);
+        response.IsFailure.Should().BeTrue();
+        response.ErrorCode.Should().Be(BusinessErrorCode.DuplicateSlug);
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenNameAlreadyExists()
+    public async Task Handle_ShouldReturnFailure_WhenNameAlreadyExists()
     {
         await using var context = StudioTestApplicationDbContextFactory.CreateWithStudios();
         var handler = new CreateStudioHandler(context);
         var command = new CreateStudioCommand("  Prime Studios  ", "prime-studios-2", false);
 
-        var act = async () => await handler.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Studio name already exists.");
+        var response = await handler.Handle(command, CancellationToken.None);
+        response.IsFailure.Should().BeTrue();
+        response.ErrorCode.Should().Be(BusinessErrorCode.DuplicateName);
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowMeaningfulMessage_WhenSaveFailsWithUniqueNameViolation()
+    public async Task Handle_ShouldReturnFailure_WhenSaveFailsWithUniqueNameViolation()
     {
         await using var context = new ThrowOnSaveStudioDbContext(
             new DbContextOptionsBuilder<StudioTestApplicationDbContext>()
@@ -68,10 +69,9 @@ public class CreateStudioHandlerTests
         var handler = new CreateStudioHandler(context);
         var command = new CreateStudioCommand("Queen Studios", "queen-studios", true);
 
-        var act = async () => await handler.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Studio name already exists.");
+        var response = await handler.Handle(command, CancellationToken.None);
+        response.IsFailure.Should().BeTrue();
+        response.ErrorCode.Should().Be(BusinessErrorCode.DuplicateName);
     }
 }
 

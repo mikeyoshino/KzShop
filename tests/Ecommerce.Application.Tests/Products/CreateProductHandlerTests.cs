@@ -1,4 +1,5 @@
 using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Products.ArchiveProduct;
 using Ecommerce.Application.Products.CreateProduct;
 using Ecommerce.Application.Products.GetAdminProductById;
@@ -42,18 +43,20 @@ public class CreateProductHandlerTests
             ]);
 
         var response = await handler.Handle(command, CancellationToken.None);
+        response.IsSuccess.Should().BeTrue();
+        response.Value.Should().NotBeNull();
 
-        response.Name.Should().Be("Batman Beyond 1/4");
-        response.Slug.Should().Be("batman-beyond-1-4");
-        response.Sku.Should().Be("BAT-BEY-003");
-        response.Status.Should().Be(ProductStatus.PreOrder.ToString());
+        response.Value!.Name.Should().Be("Batman Beyond 1/4");
+        response.Value.Slug.Should().Be("batman-beyond-1-4");
+        response.Value.Sku.Should().Be("BAT-BEY-003");
+        response.Value.Status.Should().Be(ProductStatus.PreOrder.ToString());
 
-        var createdProduct = await context.Products.SingleAsync(x => x.Id == response.Id);
+        var createdProduct = await context.Products.SingleAsync(x => x.Id == response.Value.Id);
         createdProduct.Currency.Should().Be("USD");
 
         var specs = await context.ProductSpecifications
             .AsNoTracking()
-            .Where(x => x.ProductId == response.Id)
+            .Where(x => x.ProductId == response.Value.Id)
             .OrderBy(x => x.SortOrder)
             .ToListAsync();
 
@@ -62,7 +65,7 @@ public class CreateProductHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenSlugAlreadyExists()
+    public async Task Handle_ShouldReturnFailure_WhenSlugAlreadyExists()
     {
         await using var context = ProductWriteTestApplicationDbContextFactory.CreateWithCatalog();
         var handler = new CreateProductHandler(context);
@@ -86,10 +89,9 @@ public class CreateProductHandlerTests
             "Q1 2027",
             []);
 
-        var act = async () => await handler.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Product slug already exists.");
+        var response = await handler.Handle(command, CancellationToken.None);
+        response.IsFailure.Should().BeTrue();
+        response.ErrorCode.Should().Be(BusinessErrorCode.DuplicateSlug);
     }
 }
 
@@ -126,9 +128,11 @@ public class UpdateProductHandlerTests
             ]);
 
         var response = await handler.Handle(command, CancellationToken.None);
+        response.IsSuccess.Should().BeTrue();
+        response.Value.Should().NotBeNull();
 
-        response.Slug.Should().Be("dark-knight-returns-1-4");
-        response.Status.Should().Be(ProductStatus.Waitlist.ToString());
+        response.Value!.Slug.Should().Be("dark-knight-returns-1-4");
+        response.Value.Status.Should().Be(ProductStatus.Waitlist.ToString());
 
         var updatedProduct = await context.Products.SingleAsync(x => x.Id == ProductWriteTestData.DarkKnightProductId);
         updatedProduct.Name.Should().Be("Dark Knight Returns 1/4");
@@ -147,7 +151,7 @@ public class UpdateProductHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenProductDoesNotExist()
+    public async Task Handle_ShouldReturnFailure_WhenProductDoesNotExist()
     {
         await using var context = ProductWriteTestApplicationDbContextFactory.CreateWithCatalog();
         var handler = new UpdateProductHandler(context);
@@ -172,10 +176,9 @@ public class UpdateProductHandlerTests
             "TBD",
             []);
 
-        var act = async () => await handler.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Product was not found.");
+        var response = await handler.Handle(command, CancellationToken.None);
+        response.IsFailure.Should().BeTrue();
+        response.ErrorCode.Should().Be(BusinessErrorCode.ProductNotFound);
     }
 }
 
@@ -189,8 +192,10 @@ public class ArchiveProductHandlerTests
         var command = new ArchiveProductCommand(ProductWriteTestData.DarkKnightProductId);
 
         var response = await handler.Handle(command, CancellationToken.None);
+        response.IsSuccess.Should().BeTrue();
+        response.Value.Should().NotBeNull();
 
-        response.Status.Should().Be(ProductStatus.Archived.ToString());
+        response.Value!.Status.Should().Be(ProductStatus.Archived.ToString());
 
         var archivedProduct = await context.Products.SingleAsync(x => x.Id == ProductWriteTestData.DarkKnightProductId);
         archivedProduct.Status.Should().Be(ProductStatus.Archived);
@@ -198,16 +203,15 @@ public class ArchiveProductHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenProductDoesNotExist()
+    public async Task Handle_ShouldReturnFailure_WhenProductDoesNotExist()
     {
         await using var context = ProductWriteTestApplicationDbContextFactory.CreateWithCatalog();
         var handler = new ArchiveProductHandler(context);
         var command = new ArchiveProductCommand(Guid.NewGuid());
 
-        var act = async () => await handler.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Product was not found.");
+        var response = await handler.Handle(command, CancellationToken.None);
+        response.IsFailure.Should().BeTrue();
+        response.ErrorCode.Should().Be(BusinessErrorCode.ProductNotFound);
     }
 }
 

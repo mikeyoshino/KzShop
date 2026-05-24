@@ -1,6 +1,7 @@
 using Ecommerce.Application.Categories.CreateCategory;
 using Ecommerce.Application.Categories.UpdateCategory;
 using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Entities;
 using FluentAssertions;
 using FluentValidation.TestHelper;
@@ -19,41 +20,41 @@ public class CreateCategoryHandlerTests
         var command = new CreateCategoryCommand(" Marvel ", " MARVEL ", " Licensed collectibles ", true);
 
         var response = await handler.Handle(command, CancellationToken.None);
+        response.IsSuccess.Should().BeTrue();
+        response.Value.Should().NotBeNull();
 
-        response.Name.Should().Be("Marvel");
-        response.Slug.Should().Be("marvel");
-        response.Description.Should().Be("Licensed collectibles");
-        response.IsActive.Should().BeTrue();
+        response.Value!.Name.Should().Be("Marvel");
+        response.Value.Slug.Should().Be("marvel");
+        response.Value.Description.Should().Be("Licensed collectibles");
+        response.Value.IsActive.Should().BeTrue();
 
-        var createdCategory = await context.Categories.SingleAsync(x => x.Id == response.Id);
+        var createdCategory = await context.Categories.SingleAsync(x => x.Id == response.Value.Id);
         createdCategory.Name.Should().Be("Marvel");
         createdCategory.Slug.Should().Be("marvel");
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenSlugAlreadyExists()
+    public async Task Handle_ShouldReturnFailure_WhenSlugAlreadyExists()
     {
         await using var context = CategoryTestApplicationDbContextFactory.CreateWithCategories();
         var handler = new CreateCategoryHandler(context);
         var command = new CreateCategoryCommand("Comics", "statues", "desc", true);
 
-        var act = async () => await handler.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Category slug already exists.");
+        var response = await handler.Handle(command, CancellationToken.None);
+        response.IsFailure.Should().BeTrue();
+        response.ErrorCode.Should().Be(BusinessErrorCode.DuplicateSlug);
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenNameAlreadyExists()
+    public async Task Handle_ShouldReturnFailure_WhenNameAlreadyExists()
     {
         await using var context = CategoryTestApplicationDbContextFactory.CreateWithCategories();
         var handler = new CreateCategoryHandler(context);
         var command = new CreateCategoryCommand("  Statues  ", "statues-2", "desc", true);
 
-        var act = async () => await handler.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Category name already exists.");
+        var response = await handler.Handle(command, CancellationToken.None);
+        response.IsFailure.Should().BeTrue();
+        response.ErrorCode.Should().Be(BusinessErrorCode.DuplicateName);
     }
 }
 
@@ -68,11 +69,13 @@ public class UpdateCategoryHandlerTests
         var command = new UpdateCategoryCommand(existing.Id, " Action Figures ", " ACTION-FIGURES ", " Updated desc ", false);
 
         var response = await handler.Handle(command, CancellationToken.None);
+        response.IsSuccess.Should().BeTrue();
+        response.Value.Should().NotBeNull();
 
-        response.Name.Should().Be("Action Figures");
-        response.Slug.Should().Be("action-figures");
-        response.Description.Should().Be("Updated desc");
-        response.IsActive.Should().BeFalse();
+        response.Value!.Name.Should().Be("Action Figures");
+        response.Value.Slug.Should().Be("action-figures");
+        response.Value.Description.Should().Be("Updated desc");
+        response.Value.IsActive.Should().BeFalse();
 
         var updated = await context.Categories.SingleAsync(x => x.Id == existing.Id);
         updated.Name.Should().Be("Action Figures");
@@ -82,44 +85,41 @@ public class UpdateCategoryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenUpdatingToDuplicateSlug()
+    public async Task Handle_ShouldReturnFailure_WhenUpdatingToDuplicateSlug()
     {
         await using var context = CategoryTestApplicationDbContextFactory.CreateWithCategories();
         var handler = new UpdateCategoryHandler(context);
         var existing = await context.Categories.SingleAsync(x => x.Slug == "figures");
         var command = new UpdateCategoryCommand(existing.Id, "Figures", "statues", "desc", true);
 
-        var act = async () => await handler.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Category slug already exists.");
+        var response = await handler.Handle(command, CancellationToken.None);
+        response.IsFailure.Should().BeTrue();
+        response.ErrorCode.Should().Be(BusinessErrorCode.DuplicateSlug);
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenUpdatingToDuplicateName()
+    public async Task Handle_ShouldReturnFailure_WhenUpdatingToDuplicateName()
     {
         await using var context = CategoryTestApplicationDbContextFactory.CreateWithCategories();
         var handler = new UpdateCategoryHandler(context);
         var existing = await context.Categories.SingleAsync(x => x.Slug == "figures");
         var command = new UpdateCategoryCommand(existing.Id, "Statues", "figures-new", "desc", true);
 
-        var act = async () => await handler.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Category name already exists.");
+        var response = await handler.Handle(command, CancellationToken.None);
+        response.IsFailure.Should().BeTrue();
+        response.ErrorCode.Should().Be(BusinessErrorCode.DuplicateName);
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenCategoryDoesNotExist()
+    public async Task Handle_ShouldReturnFailure_WhenCategoryDoesNotExist()
     {
         await using var context = CategoryTestApplicationDbContextFactory.CreateWithCategories();
         var handler = new UpdateCategoryHandler(context);
         var command = new UpdateCategoryCommand(Guid.NewGuid(), "Name", "name", "desc", true);
 
-        var act = async () => await handler.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Category was not found.");
+        var response = await handler.Handle(command, CancellationToken.None);
+        response.IsFailure.Should().BeTrue();
+        response.ErrorCode.Should().Be(BusinessErrorCode.CategoryNotFound);
     }
 }
 
