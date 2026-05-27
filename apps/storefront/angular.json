@@ -2,7 +2,8 @@
   "$schema": "../../node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": "9cd65dec-7ab1-4508-9675-9acd0d8ab0c7"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -26,6 +27,11 @@
               {
                 "glob": "**/*",
                 "input": "./public"
+              },
+              {
+                "glob": "**/*",
+                "input": "./src/assets",
+                "output": "/assets"
               }
             ],
             "styles": [
@@ -83,6 +89,11 @@
               {
                 "glob": "**/*",
                 "input": "./public"
+              },
+              {
+                "glob": "**/*",
+                "input": "./src/assets",
+                "output": "/assets"
               }
             ],
             "styles": [

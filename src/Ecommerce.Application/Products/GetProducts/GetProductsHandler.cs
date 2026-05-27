@@ -54,7 +54,7 @@ public class GetProductsHandler : IRequestHandler<GetProductsQuery, GetProductsR
         }
 
         var projectedQuery =
-            from item in productsQuery
+            from item in productsQuery.OrderBy(x => x.Product.Name)
             join image in _context.ProductImages.AsNoTracking() on item.Product.Id equals image.ProductId into imageGroup
             select new ProductListItemResponse(
                 item.Product.Id,
@@ -72,9 +72,7 @@ public class GetProductsHandler : IRequestHandler<GetProductsQuery, GetProductsR
                     .Select(x => x.PublicUrl)
                     .FirstOrDefault());
 
-        var items = await projectedQuery
-            .OrderBy(x => x.Name)
-            .ToListAsync(cancellationToken);
+        var items = await projectedQuery.ToListAsync(cancellationToken);
 
         return new GetProductsResponse(items);
     }

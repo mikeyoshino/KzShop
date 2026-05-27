@@ -1,7 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CategorySummary } from '../../core/models/catalog.models';
+import { finalize } from 'rxjs/operators';
+import { CategorySummary, formatBusinessError } from '../../core/models/catalog.models';
 import { CatalogApiService } from '../../core/services/catalog-api.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-categories-page',
@@ -12,6 +14,7 @@ import { CatalogApiService } from '../../core/services/catalog-api.service';
 })
 export class CategoriesPageComponent {
   private readonly api = inject(CatalogApiService);
+  private readonly toast = inject(ToastService);
   protected categories: CategorySummary[] = [];
   protected editing: CategorySummary | null = null;
   protected message = '';
@@ -26,12 +29,19 @@ export class CategoriesPageComponent {
   protected editDescription = '';
   protected editIsActive = true;
   protected search = '';
+  protected isCreating = false;
+  protected isUpdating = false;
 
   constructor() {
     this.refreshCategories();
   }
 
   protected createCategory(): void {
+    if (this.isCreating) {
+      return;
+    }
+
+    this.isCreating = true;
     this.api
       .createCategory({
         name: this.name.trim(),
@@ -39,15 +49,20 @@ export class CategoriesPageComponent {
         description: this.description.trim(),
         isActive: this.isActive,
       })
+      .pipe(finalize(() => (this.isCreating = false)))
       .subscribe({
         next: (created) => {
           this.name = '';
           this.slug = '';
           this.description = '';
           this.message = 'Category created.';
+          this.toast.success(this.message);
           this.refreshCategories();
         },
-        error: () => (this.message = 'Create category failed.'),
+        error: (error) => {
+          this.message = formatBusinessError(error, 'Create category failed.');
+          this.toast.error(this.message);
+        },
       });
   }
 
@@ -60,10 +75,11 @@ export class CategoriesPageComponent {
   }
 
   protected updateCategory(): void {
-    if (!this.editing) {
+    if (!this.editing || this.isUpdating) {
       return;
     }
 
+    this.isUpdating = true;
     this.api
       .updateCategory(this.editing.id, {
         name: this.editName.trim(),
@@ -71,13 +87,18 @@ export class CategoriesPageComponent {
         description: this.editDescription.trim(),
         isActive: this.editIsActive,
       })
+      .pipe(finalize(() => (this.isUpdating = false)))
       .subscribe({
         next: (updated) => {
           this.categories = this.categories.map((x) => (x.id === updated.id ? updated : x));
           this.editing = null;
           this.message = 'Category updated.';
+          this.toast.success(this.message);
         },
-        error: () => (this.message = 'Update category failed.'),
+        error: (error) => {
+          this.message = formatBusinessError(error, 'Update category failed.');
+          this.toast.error(this.message);
+        },
       });
   }
 

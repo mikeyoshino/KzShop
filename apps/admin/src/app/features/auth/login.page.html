@@ -1,13 +1,66 @@
-<section class="auth-shell">
-  <article class="panel auth-panel">
-    <p class="section-label">Admin Login</p>
-    <h2>Sign in</h2>
-    <input [(ngModel)]="email" type="email" placeholder="Email" />
-    <input [(ngModel)]="password" type="password" placeholder="Password" />
-    <button class="button-primary" type="button" (click)="submit()">Sign in</button>
+<section class="auth-shell auth-shell--fullscreen">
+  @if (isSubmitting) {
+    <div class="auth-loading-screen" role="status" aria-live="polite">
+      <span class="auth-loading-spinner" aria-hidden="true"></span>
+      <strong>Signing in</strong>
+    </div>
+  }
+
+  <aside class="auth-hero" aria-label="Admin workspace overview">
+    <a class="auth-brand" routerLink="/login">
+      <span>Archive</span>
+      <small>Ops Console</small>
+    </a>
+
+    <div class="auth-hero__content">
+      <p class="section-label">Catalog command center</p>
+      <h1>Manage drops, products, studios, and inventory from one focused workspace.</h1>
+      <div class="auth-hero__metrics" aria-label="Workspace highlights">
+        <span>Live catalog sync</span>
+        <span>Role protected</span>
+        <span>Launch ready</span>
+      </div>
+    </div>
+  </aside>
+
+  <article class="auth-card">
+    <div>
+      <p class="section-label">Admin Login</p>
+      <h2>Sign in to operations</h2>
+      <p>Use your admin credentials to access the ToyShops management dashboard.</p>
+    </div>
+
+    <label>
+      <span>Email</span>
+      <input [(ngModel)]="email" type="email" placeholder="admin@toyshops.local" autocomplete="email" />
+    </label>
+
+    <label>
+      <span>Password</span>
+      <input
+        [(ngModel)]="password"
+        type="password"
+        placeholder="Enter password"
+        autocomplete="current-password"
+      />
+    </label>
+
+    <button class="button-primary auth-submit" type="button" (click)="submit()" [disabled]="isSubmitting">
+      @if (isSubmitting) {
+        <span class="button-spinner" aria-hidden="true"></span>
+        Signing in
+      } @else {
+        Sign in
+      }
+    </button>
+
     @if (error) {
-      <p>{{ error }}</p>
+      <p class="auth-error">{{ error }}</p>
     }
-    <a routerLink="/register">Create account</a>
+
+    <p class="auth-card__footer">
+      Need access?
+      <a routerLink="/register">Create an admin account</a>
+    </p>
   </article>
 </section>

@@ -13,11 +13,7 @@ const app = express();
 const angularApp = new AngularNodeAppEngine();
 
 app.get('/runtime-config.js', (_req, res) => {
-  const supabaseUrl = process.env['SUPABASE_URL'] ?? '';
-  const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'] ?? '';
-  res.type('application/javascript').send(
-    `window.__supabaseUrl=${JSON.stringify(supabaseUrl)};window.__supabaseAnonKey=${JSON.stringify(supabaseAnonKey)};`,
-  );
+  res.type('application/javascript').send('window.__toyshopsRuntimeConfig={};');
 });
 
 /**

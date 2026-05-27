@@ -1,7 +1,6 @@
 declare global {
   interface Window {
-    __supabaseUrl?: string;
-    __supabaseAnonKey?: string;
+    __toyshopsRuntimeConfig?: Record<string, never>;
   }
 }
 

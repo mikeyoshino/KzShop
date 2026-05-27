@@ -1,61 +1,132 @@
-<section class="page-stack">
-  <section class="panel products-panel">
+<section class="category-management">
+  <header class="category-heading">
     <div>
       <p class="section-label">Categories</p>
-      <h2>Create category</h2>
-    </div>
-    <div class="form-grid">
-      <input [(ngModel)]="name" placeholder="Category name" />
-      <input [(ngModel)]="slug" placeholder="category-slug" />
-      <input [(ngModel)]="description" placeholder="Description" />
-      <label class="checkbox-line">
-        <input type="checkbox" [(ngModel)]="isActive" />
-        <span>Active</span>
-      </label>
-      <button class="button-primary" type="button" (click)="createCategory()">Create</button>
+      <h1>Category Registry</h1>
     </div>
     @if (message) {
-      <p>{{ message }}</p>
+      <p class="category-message">{{ message }}</p>
     }
+  </header>
+
+  <section class="command-panel category-create">
+    <div class="command-panel__header">
+      <h2>Create Category</h2>
+      <span>Registry input</span>
+    </div>
+
+    <div class="category-form-grid">
+      <label>
+        <span>Category Name</span>
+        <input [(ngModel)]="name" placeholder="DC / Batman" />
+      </label>
+      <label>
+        <span>Slug</span>
+        <input [(ngModel)]="slug" placeholder="dc-batman" />
+      </label>
+      <label class="category-field--wide">
+        <span>Description</span>
+        <input [(ngModel)]="description" placeholder="Display grouping for catalog navigation" />
+      </label>
+
+      <label class="category-toggle">
+        <input type="checkbox" [(ngModel)]="isActive" />
+        <span aria-hidden="true"></span>
+        <strong>Active</strong>
+      </label>
+
+      <button class="button-primary category-submit" type="button" (click)="createCategory()" [disabled]="isCreating">
+        @if (isCreating) {
+          <span class="button-spinner" aria-hidden="true"></span>
+          Creating
+        } @else {
+          <i class="fa-solid fa-check" aria-hidden="true"></i>
+          Create
+        }
+      </button>
+    </div>
   </section>
 
-  <section class="panel products-panel">
-    <div class="toolbar">
-      <input [(ngModel)]="search" (ngModelChange)="refreshCategories()" placeholder="Search category" />
+  <section class="command-panel category-table">
+    <div class="command-panel__header">
+      <h2>Managed List</h2>
+      <label class="category-search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input [(ngModel)]="search" (ngModelChange)="refreshCategories()" placeholder="Search category" />
+      </label>
     </div>
-    <div>
-      <p class="section-label">Managed list</p>
-      <h2>Categories</h2>
+
+    <div class="category-table__head" aria-hidden="true">
+      <span>Name</span>
+      <span>Status</span>
+      <span>Actions</span>
     </div>
+
     @for (category of categories; track category.id) {
-      <div class="list-row">
-        <div>
+      <div class="category-row">
+        <div class="category-row__title">
           <strong>{{ category.name }}</strong>
           <p>{{ category.slug }}</p>
+          @if (category.description) {
+            <small>{{ category.description }}</small>
+          }
         </div>
-        <span class="badge">{{ category.isActive ? 'Active' : 'Inactive' }}</span>
-        <button type="button" (click)="edit(category)">Edit</button>
+        <span class="badge" [class.badge--active]="category.isActive">
+          {{ category.isActive ? 'Active' : 'Inactive' }}
+        </span>
+        <div class="category-row__actions">
+          <button class="button-ghost" type="button" (click)="edit(category)">
+            <i class="fa-solid fa-pen" aria-hidden="true"></i>
+            Edit
+          </button>
+        </div>
       </div>
     } @empty {
-      <div class="list-empty">No categories.</div>
+      <div class="category-empty">No categories found.</div>
     }
   </section>
 
   @if (editing) {
-    <section class="panel products-panel">
-      <div>
-        <p class="section-label">Update</p>
-        <h2>{{ editing.name }}</h2>
+    <section class="command-panel category-create">
+      <div class="command-panel__header">
+        <h2>Update Category</h2>
+        <span>{{ editing.slug }}</span>
       </div>
-      <div class="form-grid">
-        <input [(ngModel)]="editName" placeholder="Category name" />
-        <input [(ngModel)]="editSlug" placeholder="category-slug" />
-        <input [(ngModel)]="editDescription" placeholder="Description" />
-        <label class="checkbox-line">
-          <input type="checkbox" [(ngModel)]="editIsActive" />
-          <span>Active</span>
+
+      <div class="category-form-grid">
+        <label>
+          <span>Category Name</span>
+          <input [(ngModel)]="editName" placeholder="Category name" />
         </label>
-        <button class="button-primary" type="button" (click)="updateCategory()">Save</button>
+        <label>
+          <span>Slug</span>
+          <input [(ngModel)]="editSlug" placeholder="category-slug" />
+        </label>
+        <label class="category-field--wide">
+          <span>Description</span>
+          <input [(ngModel)]="editDescription" placeholder="Description" />
+        </label>
+
+        <label class="category-toggle">
+          <input type="checkbox" [(ngModel)]="editIsActive" />
+          <span aria-hidden="true"></span>
+          <strong>Active</strong>
+        </label>
+
+        <button
+          class="button-primary category-submit category-update-submit"
+          type="button"
+          (click)="updateCategory()"
+          [disabled]="isUpdating"
+        >
+          @if (isUpdating) {
+            <span class="button-spinner" aria-hidden="true"></span>
+            Saving
+          } @else {
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            Save
+          }
+        </button>
       </div>
     </section>
   }

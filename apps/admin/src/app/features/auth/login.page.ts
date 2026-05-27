@@ -1,7 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
+import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-login-page',
@@ -11,21 +12,34 @@ import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
   styleUrl: './login.page.css',
 })
 export class LoginPageComponent {
-  private readonly auth = inject(SupabaseAuthService);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   protected email = '';
   protected password = '';
   protected error = '';
+  protected isSubmitting = false;
 
   protected async submit(): Promise<void> {
-    this.error = '';
-    const result = await this.auth.signIn(this.email.trim(), this.password);
-    if (result.error) {
-      this.error = result.error;
+    if (this.isSubmitting) {
       return;
     }
 
-    await this.router.navigate(['/dashboard']);
+    this.error = '';
+    this.isSubmitting = true;
+    try {
+      const result = await this.auth.signIn(this.email.trim(), this.password);
+      if (result.error) {
+        this.error = result.error;
+        this.toast.error(result.error);
+        return;
+      }
+
+      this.toast.success('Signed in.');
+      await this.router.navigate(['/dashboard']);
+    } finally {
+      this.isSubmitting = false;
+    }
   }
 }

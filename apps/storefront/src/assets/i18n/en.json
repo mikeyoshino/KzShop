@@ -1,0 +1,118 @@
+{
+  "actions": {
+    "cart": "Cart",
+    "search": "Search"
+  },
+  "cart": {
+    "emptyCopy": "You have not added any figures to your cart yet.",
+    "emptyTitle": "Cart is Empty",
+    "inStock": "In Stock",
+    "itemsLabel": "Cart items",
+    "preorderItem": "Pre-order Item",
+    "quantity": "Quantity",
+    "remove": "Remove",
+    "return": "Return to Archive",
+    "subtitle": "Review your selected artifacts before finalizing procurement.",
+    "title": "Requisition Log"
+  },
+  "checkout": {
+    "address": "Address",
+    "checkout": "Checkout",
+    "city": "City",
+    "contact": "Contact",
+    "email": "Email address",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "postalCode": "Postal code",
+    "qty": "Qty",
+    "shipping": "Shipping",
+    "submit": "Submit Request",
+    "subtitle": "Complete your allocation request. Shipping and taxes are finalized after review.",
+    "title": "Secure Checkout"
+  },
+  "collection": {
+    "applyFilters": "Apply Filters",
+    "itemsFound": "Items found in the archive.",
+    "noItems": "No items found",
+    "noItemsCopy": "Try adjusting your filters or checking a different category.",
+    "priceHighLow": "Price: High to Low",
+    "priceLowHigh": "Price: Low to High",
+    "scale": "Scale",
+    "showingAll": "Showing all results",
+    "sortNewest": "Sort by: Newest",
+    "status": "Status",
+    "viewDetails": "View Details"
+  },
+  "common": {
+    "home": "Home",
+    "inStock": "In Stock",
+    "new": "New",
+    "preorder": "Pre-order",
+    "shopNew": "Shop New",
+    "viewAll": "View All",
+    "waitlist": "Waitlist"
+  },
+  "footer": {
+    "authenticity": "Authenticity Guarantee",
+    "contact": "Contact Us",
+    "customerCare": "Customer Care",
+    "description": "Curated display collectibles for the discerning enthusiast. We specialize in authentic, highly detailed figures with cinematic presence.",
+    "email": "Email address",
+    "newsletter": "Newsletter",
+    "newsletterCopy": "Join for limited drop notifications.",
+    "preorderPolicy": "Pre-order Policy",
+    "secureCheckout": "Secure Checkout",
+    "shippingReturns": "Shipping & Returns"
+  },
+  "home": {
+    "archiveStandard": "The archive standard",
+    "craftsmanship": "Craftsmanship detail",
+    "editionSize": "Edition size: 1000",
+    "editorialCopy": "We do not sell toys. We build a catalog around museum-grade display pieces with disciplined curation, strong product storytelling, and enough technical detail for collectors to buy with confidence.",
+    "editorialTitle": "Curated for the discerning eye.",
+    "featuredDrops": "Live featured drops",
+    "heroCopy": "A 1/4 scale cinematic masterpiece. Tailored fabric suit, interchangeable expressions, and absolute display dominance.",
+    "latestAllocations": "Latest Allocations",
+    "latestCopy": "Recently added stock and new pre-orders.",
+    "newDrop": "New Drop",
+    "preorderNow": "Pre-order Now",
+    "shopByUniverse": "Shop by Universe",
+    "studios": "Studios in seed catalog",
+    "viewFigure": "View Figure"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "nav": {
+    "allFigures": "All Figures",
+    "anime": "Anime",
+    "batman": "Batman / DC",
+    "newDrops": "New Drops"
+  },
+  "product": {
+    "addToCart": "Add to Cart",
+    "authentic": "Authentic",
+    "browseBatman": "Browse Batman archive",
+    "deposit": "Non-Refundable Deposit Required",
+    "dimensions": "Dimensions",
+    "franchise": "Franchise",
+    "joinWaitlist": "Join Waitlist",
+    "materials": "Materials",
+    "release": "Est. Release",
+    "scale": "Scale",
+    "secureShip": "Secure Ship",
+    "specifications": "Specifications",
+    "unavailable": "Product unavailable",
+    "unavailableCopy": "The requested figure is not public in the catalog right now."
+  },
+  "summary": {
+    "calculated": "Calculated at checkout",
+    "secureCheckout": "Secure Checkout",
+    "shipping": "Shipping",
+    "subtotal": "Subtotal",
+    "taxes": "Taxes",
+    "terms": "By proceeding, you agree to our Terms of Service. Pre-orders may require a non-refundable deposit.",
+    "title": "Order Summary",
+    "totalEstimated": "Total Estimated"
+  }
+}

@@ -1,7 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { StudioSummary } from '../../core/models/catalog.models';
+import { StudioSummary, formatBusinessError } from '../../core/models/catalog.models';
 import { CatalogApiService } from '../../core/services/catalog-api.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-studios-page',
@@ -12,6 +13,7 @@ import { CatalogApiService } from '../../core/services/catalog-api.service';
 })
 export class StudiosPageComponent {
   private readonly api = inject(CatalogApiService);
+  private readonly toast = inject(ToastService);
   protected name = '';
   protected slug = '';
   protected search = '';
@@ -36,11 +38,15 @@ export class StudiosPageComponent {
       .subscribe({
         next: () => {
           this.message = 'Studio created.';
+          this.toast.success(this.message);
           this.name = '';
           this.slug = '';
           this.refreshStudios();
         },
-        error: () => (this.message = 'Create studio failed.'),
+        error: (error) => {
+          this.message = formatBusinessError(error, 'Create studio failed.');
+          this.toast.error(this.message);
+        },
       });
   }
 }

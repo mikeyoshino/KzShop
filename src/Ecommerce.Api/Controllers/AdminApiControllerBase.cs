@@ -10,7 +10,7 @@ public abstract class AdminApiControllerBase : ControllerBase
 {
     protected ActionResult MapFailure(Result result)
     {
-        var payload = new { code = result.ErrorCode?.ToString(), message = result.ErrorMessage };
+        var payload = ToErrorPayload(result.ErrorCode, result.ErrorMessage);
 
         return result.ErrorCode switch
         {
@@ -28,6 +28,15 @@ public abstract class AdminApiControllerBase : ControllerBase
             BusinessErrorCode.StorageCompensationFailed => StatusCode(StatusCodes.Status500InternalServerError, payload),
             BusinessErrorCode.PersistenceFailed => StatusCode(StatusCodes.Status500InternalServerError, payload),
             _ => BadRequest(payload)
+        };
+    }
+
+    protected static object ToErrorPayload(BusinessErrorCode? errorCode, string? message)
+    {
+        return new
+        {
+            code = errorCode is null ? (int?)null : (int)errorCode.Value,
+            message
         };
     }
 }

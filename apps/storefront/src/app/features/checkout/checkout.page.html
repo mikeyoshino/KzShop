@@ -1,0 +1,96 @@
+<main class="checkout-page">
+  <div class="shell-inner checkout-page__inner">
+    <div class="checkout-page__header">
+      <div class="breadcrumb-row">
+        <a routerLink="/">Home</a>
+        <span>/</span>
+        <a routerLink="/cart">Cart</a>
+        <span>/</span>
+        <span>{{ i18n.t('checkout.checkout') }}</span>
+      </div>
+      <h1 class="page-title">{{ i18n.t('checkout.title') }}</h1>
+      <p>{{ i18n.t('checkout.subtitle') }}</p>
+    </div>
+
+    <div class="checkout-layout">
+      <section class="checkout-form">
+        <div>
+          <h2>{{ i18n.t('checkout.contact') }}</h2>
+          <label>
+            {{ i18n.t('checkout.email') }}
+            <input type="email" placeholder="EMAIL ADDRESS" />
+          </label>
+        </div>
+
+        <div>
+          <h2>{{ i18n.t('checkout.shipping') }}</h2>
+          <div class="checkout-grid">
+            <label>
+              {{ i18n.t('checkout.firstName') }}
+              <input type="text" placeholder="FIRST NAME" />
+            </label>
+            <label>
+              {{ i18n.t('checkout.lastName') }}
+              <input type="text" placeholder="LAST NAME" />
+            </label>
+          </div>
+          <label>
+            {{ i18n.t('checkout.address') }}
+            <input type="text" placeholder="STREET ADDRESS" />
+          </label>
+          <div class="checkout-grid">
+            <label>
+              {{ i18n.t('checkout.city') }}
+              <input type="text" placeholder="CITY" />
+            </label>
+            <label>
+              {{ i18n.t('checkout.postalCode') }}
+              <input type="text" placeholder="POSTAL CODE" />
+            </label>
+          </div>
+        </div>
+
+        <button type="button" class="button button--accent">
+          {{ i18n.t('checkout.submit') }} <i class="fa-solid fa-lock" aria-hidden="true"></i>
+        </button>
+      </section>
+
+      <aside class="order-summary">
+        <h2>{{ i18n.t('summary.title') }}</h2>
+        <div class="checkout-items">
+          @for (item of cart.items(); track item.productId) {
+            <div class="checkout-item">
+              <img [src]="item.imageUrl" [alt]="item.name" />
+              <div>
+                <span>{{ item.studioName }} | {{ item.scale }}</span>
+                <strong>{{ item.name }}</strong>
+                <small>{{ i18n.t('checkout.qty') }} {{ item.quantity }}</small>
+              </div>
+              <em>{{ item.priceAmount * item.quantity | currency: item.currency : 'symbol' : '1.0-0' }}</em>
+            </div>
+          }
+        </div>
+
+        <div class="order-summary__rows">
+          <div>
+            <span>{{ i18n.t('summary.subtotal') }}</span>
+            <strong>{{ cart.subtotal() | currency: cart.currency() : 'symbol' : '1.0-0' }}</strong>
+          </div>
+          <div>
+            <span>{{ i18n.t('summary.shipping') }}</span>
+            <em>{{ i18n.t('summary.calculated') }}</em>
+          </div>
+          <div>
+            <span>{{ i18n.t('summary.taxes') }}</span>
+            <em>{{ i18n.t('summary.calculated') }}</em>
+          </div>
+        </div>
+
+        <div class="order-summary__total">
+          <span>{{ i18n.t('summary.totalEstimated') }}</span>
+          <strong>{{ cart.subtotal() | currency: cart.currency() : 'symbol' : '1.0-0' }}</strong>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>

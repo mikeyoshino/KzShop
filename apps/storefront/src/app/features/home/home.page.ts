@@ -4,153 +4,23 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ProductCard } from '../../core/models/catalog.models';
 import { CatalogApiService } from '../../core/services/catalog-api.service';
+import { LocalizationService } from '../../core/services/localization.service';
 
 @Component({
   selector: 'app-home-page',
   standalone: true,
   imports: [CurrencyPipe, RouterLink],
-  template: `
-    <main>
-      <section class="hero hero--batman">
-        <div class="shell-inner hero__inner">
-          @if (heroProduct(); as heroProduct) {
-            <div class="hero__copy">
-              <div class="eyebrow-row">
-                @if (heroProduct.isNew) {
-                  <span class="badge badge--accent">New Drop</span>
-                }
-                <span class="eyebrow-muted">{{ heroProduct.scale }} | {{ heroProduct.studioName }}</span>
-              </div>
-              <h1>{{ heroHeadline(heroProduct.name) }}</h1>
-              <p>
-                {{ heroDescription(heroProduct) }}
-              </p>
-              <div class="hero__actions">
-                <a class="button button--light" [routerLink]="['/products', heroProduct.slug]">
-                  {{ heroProduct.status === 'PreOrder' ? 'Pre-order now' : 'View figure' }}
-                </a>
-                <a class="button button--ghost" [routerLink]="['/collections', heroProduct.categorySlug]">
-                  View archive
-                </a>
-              </div>
-            </div>
-          }
-        </div>
-      </section>
-
-      <section class="ticker-strip" aria-label="Store assurances">
-        <div class="shell-inner ticker-strip__inner">
-          <span>Authentic collectibles</span>
-          <span>Secure packaging</span>
-          <span>Global shipping</span>
-          <span>Curated allocations</span>
-        </div>
-      </section>
-
-      <section class="section">
-        <div class="shell-inner">
-          <div class="section-heading">
-            <div>
-              <p class="section-kicker">Franchises</p>
-              <h2>Browse by world</h2>
-            </div>
-            <a class="section-link" routerLink="/collections/dc-batman">View all</a>
-          </div>
-
-          <div class="franchise-grid">
-            @for (collection of collections(); track collection.key) {
-              <a class="franchise-card" [routerLink]="collection.route">
-                <span class="franchise-card__label">{{ collection.label }}</span>
-                <strong>{{ collection.title }}</strong>
-                <p>{{ collection.description }}</p>
-              </a>
-            }
-          </div>
-        </div>
-      </section>
-
-      <section class="section section--muted">
-        <div class="shell-inner">
-          <div class="section-heading">
-            <div>
-              <p class="section-kicker">Latest allocations</p>
-              <h2>Recently added stock and pre-orders</h2>
-            </div>
-            <a class="section-link" routerLink="/collections/dc-batman">Shop new</a>
-          </div>
-
-          <div class="product-grid">
-            @for (product of featuredProducts(); track product.id) {
-              <article class="product-card" [attr.data-tone]="product.categorySlug">
-                <a
-                  class="product-card__media"
-                  [routerLink]="['/products', product.slug]"
-                  [style.--product-image]="'url(' + (product.primaryImageUrl ?? '') + ')'"
-                >
-                  <div class="product-card__badges">
-                    @if (product.isNew) {
-                      <span class="badge badge--dark">New</span>
-                    }
-                    <span class="badge" [class.badge--accent]="product.status === 'PreOrder'">
-                      {{ product.status === 'PreOrder' ? 'Pre-order' : product.status }}
-                    </span>
-                  </div>
-                  <div class="product-card__title">{{ product.name }}</div>
-                </a>
-                <div class="product-card__meta">
-                  <p>{{ product.studioName }}</p>
-                  <a class="product-card__name" [routerLink]="['/products', product.slug]">
-                    {{ product.name }}
-                  </a>
-                  <div class="product-card__price-row">
-                    <strong>{{ product.priceAmount | currency: product.currency : 'symbol' : '1.0-0' }}</strong>
-                    <span>{{ product.scale }}</span>
-                  </div>
-                </div>
-              </article>
-            }
-          </div>
-        </div>
-      </section>
-
-      <section class="section section--editorial">
-        <div class="shell-inner editorial-grid">
-          <div class="editorial-copy">
-            <p class="section-kicker">The archive standard</p>
-            <h2>Curated for the discerning eye.</h2>
-            <p>
-              We do not sell toys. We build a catalog around museum-grade display pieces with
-              disciplined curation, strong product storytelling, and enough technical detail for
-              collectors to buy with confidence.
-            </p>
-            <div class="editorial-metrics">
-              <div>
-                <strong>{{ featuredCount() }}</strong>
-                <span>Live featured drops</span>
-              </div>
-              <div>
-                <strong>3</strong>
-                <span>Studios in seed catalog</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="editorial-panel">
-            <div class="editorial-panel__frame">
-              <div class="editorial-panel__card">
-                <span>Craftsmanship detail</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-  `,
+  templateUrl: './home.page.html',
+  styleUrl: './home.page.css',
 })
 export class HomePageComponent {
   private readonly catalogApi = inject(CatalogApiService);
+  protected readonly i18n = inject(LocalizationService);
   private readonly heroPreferredSlugs = ['dark-knight', 'joker-arkham-asylum', 'arkham-joker'];
   private readonly featuredPreferredSlugs = ['dark-knight', 'joker-arkham-asylum', 'arkham-joker', 'berserker-guts'];
+  protected readonly tickerItems = Array(10)
+    .fill(['Authentic Collectibles', 'Secure Packaging', 'Global Shipping'])
+    .flat();
 
   private readonly catalogResponse = toSignal(this.catalogApi.getProducts(), {
     initialValue: { items: [] },
@@ -172,38 +42,37 @@ export class HomePageComponent {
       counts[product.categorySlug] = (counts[product.categorySlug] ?? 0) + 1;
       return counts;
     }, {});
-    const heroProduct = this.heroProduct();
-
     const content: Array<{
       key: string;
       route: string[];
       label: string;
       title: string;
+      imageUrl: string;
       description: string;
     }> = [
       {
         key: 'dc-batman',
         route: ['/collections', 'dc-batman'],
         label: 'DC / Batman',
-        title: 'Gotham Icons',
+        title: 'DC / Batman',
+        imageUrl: 'https://placehold.co/600x800/222222/555555?text=DC+Heroes',
         description: this.describeCollectionCount(liveCounts['dc-batman'], 'Premium format pieces and Arkham shelf anchors'),
       },
       {
         key: 'anime',
         route: ['/collections', 'anime'],
         label: 'Anime',
-        title: 'Anime Titans',
+        title: 'Anime',
+        imageUrl: 'https://placehold.co/600x800/1e293b/475569?text=Anime+Figures',
         description: this.describeCollectionCount(liveCounts['anime'], 'Scale-heavy statues with painterly finishes'),
       },
       {
-        key: 'collector-edit',
-        route: heroProduct ? ['/products', heroProduct.slug] : ['/collections', 'dc-batman'],
-        label: 'Collector Edit',
-        title: 'Flagship Figure',
-        description: this.describeCollectionCount(
-          heroProduct ? 1 : 0,
-          'Lead collectible selected from the live catalog',
-        ),
+        key: 'gaming',
+        route: ['/collections', 'gaming'],
+        label: 'Gaming',
+        title: 'Gaming',
+        imageUrl: 'https://placehold.co/600x800/27272a/52525b?text=Gaming+Collectibles',
+        description: this.describeCollectionCount(liveCounts['gaming'], 'Game-world collectibles with cinematic shelf presence'),
       },
     ];
 
@@ -214,6 +83,27 @@ export class HomePageComponent {
 
   protected heroHeadline(name: string): string {
     return name.replace(':', '');
+  }
+
+  protected heroHeadlineParts(name: string): { primary: string; secondary: string } {
+    const [primary, secondary] = name.split(':').map((part) => part.trim());
+    return {
+      primary,
+      secondary: secondary || 'Premium Format',
+    };
+  }
+
+  protected statusLabel(status: string): string {
+    switch (status) {
+      case 'PreOrder':
+        return this.i18n.t('common.preorder');
+      case 'Waitlist':
+        return this.i18n.t('common.waitlist');
+      case 'Active':
+        return this.i18n.t('common.inStock');
+      default:
+        return status;
+    }
   }
 
   protected heroDescription(product: { studioName: string; scale: string; status: string }): string {

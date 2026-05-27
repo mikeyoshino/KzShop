@@ -1,0 +1,173 @@
+<section class="inventory-page">
+  <header class="inventory-heading">
+    <div>
+      <p class="section-label">Catalog</p>
+      <h1>Products</h1>
+      <p>Manage catalog products, then open full editor for specifications, inventory, and images.</p>
+    </div>
+    <a class="button-primary inventory-create" routerLink="/products/new">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      Create product
+    </a>
+  </header>
+
+  <section class="command-panel inventory-list-panel">
+    <div class="inventory-filters">
+      <label class="inventory-search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input
+          type="search"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+          aria-label="Search products"
+          placeholder="Search product, studio, or slug"
+        />
+      </label>
+
+      <select
+        [ngModel]="selectedStatus()"
+        (ngModelChange)="selectedStatus.set($event)"
+        aria-label="Filter by status"
+      >
+        <option value="all">All statuses</option>
+        @for (status of statusOptions(); track status) {
+          <option [value]="status">{{ statusLabel(status) }}</option>
+        }
+      </select>
+
+      <select
+        [ngModel]="selectedCategory()"
+        (ngModelChange)="selectedCategory.set($event)"
+        aria-label="Filter by category"
+      >
+        <option value="all">All categories</option>
+        @for (category of categoryOptions(); track category) {
+          <option [value]="category">{{ category }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="inventory-summary">
+      <span>{{ filteredProducts().length }} products in scope</span>
+      <span>{{ waitlistCount() }} waitlist items</span>
+      <span>{{ newCount() }} new drops</span>
+    </div>
+
+    <div class="inventory-table" role="table" aria-label="Catalog products">
+      <div class="inventory-table__head" role="row">
+        <span>Product</span>
+        <span>Status</span>
+        <span>Studio</span>
+        <span>Price</span>
+      </div>
+
+      @for (product of filteredProducts(); track product.id) {
+        <button
+          type="button"
+          class="inventory-row"
+          [ngClass]="{ 'is-selected': activeSlug() === product.slug }"
+          (click)="selectedSlug.set(product.slug)"
+        >
+          <span class="inventory-row__product">
+            <strong>{{ product.name }}</strong>
+            <small>{{ product.slug }} | {{ product.scale }}</small>
+          </span>
+          <span class="status-pill" [ngClass]="'status-pill--' + toneFor(product.status)">
+            {{ statusLabel(product.status) }}
+          </span>
+          <span class="inventory-row__studio">{{ product.studioName }}</span>
+          <span class="inventory-row__price">
+            {{ product.priceAmount | currency: product.currency : 'symbol' : '1.0-0' }}
+          </span>
+        </button>
+      } @empty {
+        <div class="inventory-empty">No products match the current filters.</div>
+      }
+    </div>
+  </section>
+
+  <section class="inventory-details-grid">
+    <article class="command-panel inventory-details">
+      <div class="command-panel__header">
+        <h2>Selected Product</h2>
+        @if (selectedProduct(); as product) {
+          <a [routerLink]="['/products', product.id]">Open editor</a>
+        }
+      </div>
+
+      <div class="inventory-detail-body">
+        @if (selectedProduct(); as product) {
+          <h3>{{ product.name }}</h3>
+          <p>{{ product.shortDescription }}</p>
+
+          <div class="inventory-meta">
+            <span class="badge" [ngClass]="'badge--' + toneFor(product.status)">
+              {{ statusLabel(product.status) }}
+            </span>
+            <span>{{ product.studioName }}</span>
+            <span>{{ product.scale }}</span>
+            <span>{{ product.priceAmount | currency: product.currency : 'symbol' : '1.0-0' }}</span>
+          </div>
+
+          <div class="inventory-spec-cards">
+            <div>
+              <span>Materials</span>
+              <strong>{{ product.materials }}</strong>
+            </div>
+            <div>
+              <span>Dimensions</span>
+              <strong>{{ product.dimensionsText }}</strong>
+            </div>
+            <div>
+              <span>Edition</span>
+              <strong>{{ product.editionSize }}</strong>
+            </div>
+            <div>
+              <span>Release</span>
+              <strong>{{ product.estimatedReleaseText }}</strong>
+            </div>
+          </div>
+
+          <div class="inventory-spec-list">
+            @for (spec of product.specifications; track spec.label + spec.sortOrder) {
+              <div>
+                <span>{{ spec.label }}</span>
+                <strong>{{ spec.value }}</strong>
+              </div>
+            } @empty {
+              <div class="inventory-empty">No additional specifications were returned.</div>
+            }
+          </div>
+        } @else {
+          <p>Select a product row to inspect the seeded detail payload.</p>
+        }
+      </div>
+    </article>
+
+    <article class="command-panel inventory-image-panel">
+      <div class="command-panel__header">
+        <h2>Visual Coverage</h2>
+      </div>
+
+      <div class="inventory-detail-body">
+        @if (selectedProduct(); as product) {
+          @if (product.images.length > 0) {
+            <div class="inventory-image-stack">
+              @for (image of product.images; track image.id) {
+                <div class="inventory-image-card">
+                  <span>Image {{ image.sortOrder + 1 }}</span>
+                  <strong>{{ image.altText }}</strong>
+                  <small>{{ image.publicUrl || 'No public URL' }}</small>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="inventory-empty">The selected product has no image entries yet.</div>
+          }
+        } @else {
+          <p>Image metadata appears here after selecting a product.</p>
+        }
+      </div>
+    </article>
+  </section>
+</section>

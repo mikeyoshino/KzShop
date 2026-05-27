@@ -338,6 +338,15 @@ internal sealed class ProductImagesTestApplicationDbContext : DbContext, IApplic
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<ProductSpecification> ProductSpecifications => Set<ProductSpecification>();
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<OrderItem>().Property<Guid>("Id");
+        modelBuilder.Entity<OrderItem>().HasKey("Id");
+    }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

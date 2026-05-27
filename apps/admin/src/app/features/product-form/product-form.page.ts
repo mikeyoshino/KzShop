@@ -1,8 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ProductStatus, StudioSummary } from '../../core/models/catalog.models';
+import {
+  CategorySummary,
+  ProductStatus,
+  StudioSummary,
+  formatBusinessError,
+} from '../../core/models/catalog.models';
 import { CatalogApiService } from '../../core/services/catalog-api.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-product-form-page',
@@ -15,6 +21,7 @@ export class ProductFormPageComponent {
   private readonly api = inject(CatalogApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   protected readonly statuses = Object.values(ProductStatus);
   protected productId = '';
@@ -42,6 +49,7 @@ export class ProductFormPageComponent {
 
   protected studioSearch = '';
   protected studios: StudioSummary[] = [];
+  protected categories: CategorySummary[] = [];
 
   protected quantityDelta = 0;
   protected imageAltText = '';
@@ -52,10 +60,17 @@ export class ProductFormPageComponent {
     const routeId = this.route.snapshot.paramMap.get('id') ?? 'new';
     this.productId = routeId;
     this.isCreateMode = routeId === 'new';
+    this.fetchCategories();
     this.fetchStudios('');
     if (!this.isCreateMode) {
       this.loadProduct(routeId);
     }
+  }
+
+  protected fetchCategories(): void {
+    this.api.getCategories('').subscribe((response) => {
+      this.categories = response.items;
+    });
   }
 
   protected fetchStudios(search: string): void {
@@ -74,9 +89,10 @@ export class ProductFormPageComponent {
     this.api.createStudio({ name, slug, isActive: true }).subscribe({
       next: (studio) => {
         this.studioId = studio.id;
+        this.setSuccess('Studio created.');
         this.fetchStudios(this.studioSearch);
       },
-      error: () => (this.message = 'Create studio failed.'),
+      error: (error) => this.setError(formatBusinessError(error, 'Create studio failed.')),
     });
   }
 
@@ -108,29 +124,32 @@ export class ProductFormPageComponent {
 
     if (this.isCreateMode) {
       this.api.createProduct(input).subscribe({
-        next: (created) => this.router.navigate(['/products', created.id]),
-        error: () => (this.message = 'Create product failed.'),
+        next: (created) => {
+          this.setSuccess('Product created.');
+          this.router.navigate(['/products', created.id]);
+        },
+        error: (error) => this.setError(formatBusinessError(error, 'Create product failed.')),
       });
       return;
     }
 
     this.api.updateProduct(this.productId, input).subscribe({
-      next: () => (this.message = 'Product updated.'),
-      error: () => (this.message = 'Update product failed.'),
+      next: () => this.setSuccess('Product updated.'),
+      error: (error) => this.setError(formatBusinessError(error, 'Update product failed.')),
     });
   }
 
   protected archiveProduct(): void {
     this.api.archiveProduct(this.productId).subscribe({
-      next: () => (this.message = 'Product archived.'),
-      error: () => (this.message = 'Archive failed.'),
+      next: () => this.setSuccess('Product archived.'),
+      error: (error) => this.setError(formatBusinessError(error, 'Archive failed.')),
     });
   }
 
   protected adjustStock(): void {
     this.api.adjustStock(this.productId, Number(this.quantityDelta)).subscribe({
-      next: () => (this.message = 'Inventory updated.'),
-      error: () => (this.message = 'Inventory update failed.'),
+      next: () => this.setSuccess('Inventory updated.'),
+      error: (error) => this.setError(formatBusinessError(error, 'Inventory update failed.')),
     });
   }
 
@@ -147,9 +166,11 @@ export class ProductFormPageComponent {
     this.api.uploadProductImage(this.productId, this.selectedFile, this.imageAltText.trim()).subscribe({
       next: () => {
         this.imageAltText = '';
+        this.selectedFile = null;
+        this.setSuccess('Image uploaded.');
         this.loadProduct(this.productId);
       },
-      error: () => (this.message = 'Upload image failed.'),
+      error: (error) => this.setError(formatBusinessError(error, 'Upload image failed.')),
     });
   }
 
@@ -165,15 +186,21 @@ export class ProductFormPageComponent {
     reordered[index] = temp;
     const ids = reordered.map((x) => x.id);
     this.api.reorderProductImages(this.productId, ids).subscribe({
-      next: () => this.loadProduct(this.productId),
-      error: () => (this.message = 'Reorder failed.'),
+      next: () => {
+        this.setSuccess('Image order updated.');
+        this.loadProduct(this.productId);
+      },
+      error: (error) => this.setError(formatBusinessError(error, 'Reorder failed.')),
     });
   }
 
   protected deleteImage(imageId: string): void {
     this.api.deleteProductImage(this.productId, imageId).subscribe({
-      next: () => this.loadProduct(this.productId),
-      error: () => (this.message = 'Delete image failed.'),
+      next: () => {
+        this.setSuccess('Image deleted.');
+        this.loadProduct(this.productId);
+      },
+      error: (error) => this.setError(formatBusinessError(error, 'Delete image failed.')),
     });
   }
 
@@ -204,7 +231,17 @@ export class ProductFormPageComponent {
         this.specifications = product.specifications.map((x) => ({ label: x.label, value: x.value }));
         this.images = product.images;
       },
-      error: () => (this.message = 'Load product failed.'),
+      error: () => this.setError('Load product failed.'),
     });
+  }
+
+  private setSuccess(message: string): void {
+    this.message = message;
+    this.toast.success(message);
+  }
+
+  private setError(message: string): void {
+    this.message = message;
+    this.toast.error(message);
   }
 }

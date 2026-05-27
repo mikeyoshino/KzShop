@@ -153,6 +153,15 @@ internal class StudioTestApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<ProductSpecification> ProductSpecifications => Set<ProductSpecification>();
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<OrderItem>().Property<Guid>("Id");
+        modelBuilder.Entity<OrderItem>().HasKey("Id");
+    }
 }
 
 internal sealed class ThrowOnSaveStudioDbContext : IApplicationDbContext, IAsyncDisposable
@@ -172,6 +181,8 @@ internal sealed class ThrowOnSaveStudioDbContext : IApplicationDbContext, IAsync
     public DbSet<ProductImage> ProductImages => _innerContext.ProductImages;
     public DbSet<ProductSpecification> ProductSpecifications => _innerContext.ProductSpecifications;
     public DbSet<InventoryItem> InventoryItems => _innerContext.InventoryItems;
+    public DbSet<Order> Orders => _innerContext.Orders;
+    public DbSet<OrderItem> OrderItems => _innerContext.OrderItems;
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {

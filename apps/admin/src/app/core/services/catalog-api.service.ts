@@ -1,8 +1,11 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, REQUEST, inject } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import {
+  BusinessError,
+  BusinessErrorCode,
+  AdminDashboardMetricsResponse,
   AdminProductDetail,
   CategorySummary,
   CreateProductSpecificationInput,
@@ -45,8 +48,14 @@ export class CatalogApiService {
       .pipe(catchError(() => of(null)));
   }
 
+  getAdminDashboardMetrics(): Observable<AdminDashboardMetricsResponse> {
+    return this.http.get<AdminDashboardMetricsResponse>(`${this.adminBaseUrl}/dashboard/metrics`);
+  }
+
   createStudio(input: { name: string; slug: string; isActive: boolean }): Observable<StudioSummary> {
-    return this.http.post<StudioSummary>(`${this.adminBaseUrl}/studios`, input);
+    return this.http
+      .post<StudioSummary>(`${this.adminBaseUrl}/studios`, input)
+      .pipe(catchError((error) => this.rethrowAdminError(error)));
   }
 
   searchStudios(search: string): Observable<SearchStudiosResponse> {
@@ -63,14 +72,18 @@ export class CatalogApiService {
     description: string;
     isActive: boolean;
   }): Observable<CategorySummary> {
-    return this.http.post<CategorySummary>(`${this.adminBaseUrl}/categories`, input);
+    return this.http
+      .post<CategorySummary>(`${this.adminBaseUrl}/categories`, input)
+      .pipe(catchError((error) => this.rethrowAdminError(error)));
   }
 
   updateCategory(
     id: string,
     input: { name: string; slug: string; description: string; isActive: boolean },
   ): Observable<CategorySummary> {
-    return this.http.put<CategorySummary>(`${this.adminBaseUrl}/categories/${encodeURIComponent(id)}`, input);
+    return this.http
+      .put<CategorySummary>(`${this.adminBaseUrl}/categories/${encodeURIComponent(id)}`, input)
+      .pipe(catchError((error) => this.rethrowAdminError(error)));
   }
 
   getCategories(search = ''): Observable<{ items: CategorySummary[] }> {
@@ -82,18 +95,24 @@ export class CatalogApiService {
   }
 
   createProduct(input: UpsertProductInput): Observable<{ id: string }> {
-    return this.http.post<{ id: string }>(`${this.adminBaseUrl}/products`, input);
+    return this.http
+      .post<{ id: string }>(`${this.adminBaseUrl}/products`, input)
+      .pipe(catchError((error) => this.rethrowAdminError(error)));
   }
 
   updateProduct(id: string, input: UpsertProductInput): Observable<{ id: string }> {
-    return this.http.put<{ id: string }>(`${this.adminBaseUrl}/products/${encodeURIComponent(id)}`, input);
+    return this.http
+      .put<{ id: string }>(`${this.adminBaseUrl}/products/${encodeURIComponent(id)}`, input)
+      .pipe(catchError((error) => this.rethrowAdminError(error)));
   }
 
   archiveProduct(id: string): Observable<{ id: string; status: ProductStatus }> {
-    return this.http.post<{ id: string; status: ProductStatus }>(
-      `${this.adminBaseUrl}/products/${encodeURIComponent(id)}/archive`,
-      {},
-    );
+    return this.http
+      .post<{ id: string; status: ProductStatus }>(
+        `${this.adminBaseUrl}/products/${encodeURIComponent(id)}/archive`,
+        {},
+      )
+      .pipe(catchError((error) => this.rethrowAdminError(error)));
   }
 
   adjustStock(productId: string, quantityDelta: number): Observable<{
@@ -102,12 +121,14 @@ export class CatalogApiService {
     reservedQuantity: number;
     availableQuantity: number;
   }> {
-    return this.http.post<{
-      productId: string;
-      onHandQuantity: number;
-      reservedQuantity: number;
-      availableQuantity: number;
-    }>(`${this.adminBaseUrl}/inventory/adjust`, { productId, quantityDelta });
+    return this.http
+      .post<{
+        productId: string;
+        onHandQuantity: number;
+        reservedQuantity: number;
+        availableQuantity: number;
+      }>(`${this.adminBaseUrl}/inventory/adjust`, { productId, quantityDelta })
+      .pipe(catchError((error) => this.rethrowAdminError(error)));
   }
 
   uploadProductImage(productId: string, file: File, altText: string): Observable<{
@@ -119,23 +140,31 @@ export class CatalogApiService {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('altText', altText);
-    return this.http.post<{
-      id: string;
-      publicUrl: string;
-      altText: string;
-      sortOrder: number;
-    }>(`${this.adminBaseUrl}/products/${encodeURIComponent(productId)}/images`, formData);
+    return this.http
+      .post<{
+        id: string;
+        publicUrl: string;
+        altText: string;
+        sortOrder: number;
+      }>(`${this.adminBaseUrl}/products/${encodeURIComponent(productId)}/images`, formData)
+      .pipe(catchError((error) => this.rethrowAdminError(error)));
   }
 
   reorderProductImages(productId: string, orderedImageIds: string[]): Observable<{ imageIds: string[] }> {
-    return this.http.put<{ imageIds: string[] }>(
-      `${this.adminBaseUrl}/products/${encodeURIComponent(productId)}/images/reorder`,
-      { orderedImageIds },
-    );
+    return this.http
+      .put<{ imageIds: string[] }>(
+        `${this.adminBaseUrl}/products/${encodeURIComponent(productId)}/images/reorder`,
+        { orderedImageIds },
+      )
+      .pipe(catchError((error) => this.rethrowAdminError(error)));
   }
 
   deleteProductImage(productId: string, productImageId: string): Observable<unknown> {
-    return this.http.delete(`${this.adminBaseUrl}/products/${encodeURIComponent(productId)}/images/${encodeURIComponent(productImageId)}`);
+    return this.http
+      .delete(
+        `${this.adminBaseUrl}/products/${encodeURIComponent(productId)}/images/${encodeURIComponent(productImageId)}`,
+      )
+      .pipe(catchError((error) => this.rethrowAdminError(error)));
   }
 
   toSpecificationInputs(rows: Array<{ label: string; value: string }>): CreateProductSpecificationInput[] {
@@ -147,5 +176,30 @@ export class CatalogApiService {
   private resolveBaseUrl(path: string): string {
     const requestUrl = this.request?.url;
     return requestUrl ? new URL(path, requestUrl).toString() : path;
+  }
+
+  private rethrowAdminError(error: unknown): Observable<never> {
+    return throwError(() => this.parseAdminError(error));
+  }
+
+  private parseAdminError(error: unknown): unknown {
+    if (!(error instanceof HttpErrorResponse) || !error.error || typeof error.error !== 'object') {
+      return error;
+    }
+
+    const payload = error.error as Partial<BusinessError>;
+    if (typeof payload.code !== 'number' || typeof payload.message !== 'string') {
+      return error;
+    }
+
+    if (!Object.values(BusinessErrorCode).includes(payload.code)) {
+      return error;
+    }
+
+    return {
+      code: payload.code as BusinessErrorCode,
+      message: payload.message,
+      status: error.status,
+    } satisfies BusinessError;
   }
 }

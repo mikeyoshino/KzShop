@@ -21,7 +21,12 @@
       <input [(ngModel)]="dimensionsText" placeholder="Dimensions" />
       <input [(ngModel)]="editionSize" placeholder="Edition size" />
       <input [(ngModel)]="estimatedReleaseText" placeholder="Estimated release" />
-      <input [(ngModel)]="categoryId" placeholder="Category Id" />
+      <select [(ngModel)]="categoryId">
+        <option value="">Select category</option>
+        @for (category of categories; track category.id) {
+          <option [value]="category.id">{{ category.name }}</option>
+        }
+      </select>
     </div>
 
     <textarea [(ngModel)]="shortDescription" rows="2" placeholder="Short description"></textarea>

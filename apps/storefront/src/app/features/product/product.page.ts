@@ -1,145 +1,25 @@
-import { CurrencyPipe, TitleCasePipe } from '@angular/common';
+import { CurrencyPipe } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { distinctUntilChanged, map, switchMap } from 'rxjs/operators';
 import { ProductImage } from '../../core/models/catalog.models';
+import { CartService } from '../../core/services/cart.service';
 import { CatalogApiService } from '../../core/services/catalog-api.service';
+import { LocalizationService } from '../../core/services/localization.service';
 
 @Component({
   selector: 'app-product-page',
   standalone: true,
-  imports: [CurrencyPipe, RouterLink, TitleCasePipe],
-  template: `
-    <main class="section section--tight">
-      <div class="shell-inner">
-        @if (product(); as product) {
-          <div class="breadcrumb-row">
-            <a routerLink="/">Home</a>
-            <span>/</span>
-            <a [routerLink]="['/collections', product.categorySlug]">{{ collectionTitle() }}</a>
-            <span>/</span>
-            <span>{{ product.name }}</span>
-          </div>
-
-          <section class="product-layout">
-            <div class="product-gallery">
-              <div class="product-gallery__thumbs">
-                @for (image of product.images; track image.id; let index = $index) {
-                  <button
-                    type="button"
-                    class="gallery-thumb"
-                    [class.is-active]="selectedImageIndex() === index"
-                    (click)="selectedImageIndex.set(index)"
-                    [style.--product-image]="'url(' + image.publicUrl + ')'"
-                  >
-                    <span>{{ image.altText || 'View ' + (index + 1) }}</span>
-                  </button>
-                }
-              </div>
-
-              <div
-                class="product-hero-card"
-                [attr.data-tone]="product.categorySlug"
-                [style.--product-image]="'url(' + activeImage().publicUrl + ')'"
-              >
-                <div class="product-card__badges">
-                  <span class="badge" [class.badge--accent]="product.status === 'PreOrder'">
-                    {{ product.status === 'PreOrder' ? 'Pre-order' : product.status | titlecase }}
-                  </span>
-                  @if (product.isNew) {
-                    <span class="badge badge--dark">New</span>
-                  }
-                </div>
-                <div class="product-hero-card__content">
-                  <strong>{{ activeImage().altText || product.name }}</strong>
-                  <span>{{ product.scale }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="product-details">
-              <div class="product-details__topline">
-                <span>{{ product.studioName }}</span>
-                <span>ID: {{ product.id.slice(0, 4) }}</span>
-              </div>
-
-              <h1 class="page-title">{{ product.name }}</h1>
-
-              <div class="product-price-row">
-                <strong>{{ product.priceAmount | currency: product.currency : 'symbol' : '1.0-0' }}</strong>
-                <span>Non-refundable deposit required</span>
-              </div>
-
-              <p class="product-summary">
-                {{ product.shortDescription }}
-              </p>
-
-              <p class="product-description">
-                {{ product.description }}
-              </p>
-
-              <div class="product-actions">
-                <button type="button" class="button button--accent" disabled>
-                  {{ primaryCtaLabel(product.status) }}
-                </button>
-                <div class="product-flags">
-                  <span>Secure ship</span>
-                  <span>Authentic</span>
-                </div>
-              </div>
-
-              <section class="spec-panel">
-                <h2>Specifications</h2>
-                <div class="spec-list">
-                  <div class="spec-row">
-                    <span>Franchise</span>
-                    <strong>{{ collectionTitle() }}</strong>
-                  </div>
-                  <div class="spec-row">
-                    <span>Scale</span>
-                    <strong>{{ product.scale }}</strong>
-                  </div>
-                  <div class="spec-row">
-                    <span>Materials</span>
-                    <strong>{{ product.materials }}</strong>
-                  </div>
-                  <div class="spec-row">
-                    <span>Dimensions</span>
-                    <strong>{{ product.dimensionsText }}</strong>
-                  </div>
-                  <div class="spec-row">
-                    <span>Edition Size</span>
-                    <strong>{{ product.editionSize }}</strong>
-                  </div>
-                  <div class="spec-row">
-                    <span>Est. Release</span>
-                    <strong>{{ product.estimatedReleaseText }}</strong>
-                  </div>
-                  @for (specification of product.specifications; track specification.label + specification.sortOrder) {
-                    <div class="spec-row">
-                      <span>{{ specification.label }}</span>
-                      <strong>{{ specification.value }}</strong>
-                    </div>
-                  }
-                </div>
-              </section>
-            </div>
-          </section>
-        } @else {
-          <div class="empty-state">
-            <h1 class="page-title">Product unavailable</h1>
-            <p>The requested figure is not public in the catalog right now.</p>
-            <a class="button button--dark" routerLink="/collections/dc-batman">Browse Batman archive</a>
-          </div>
-        }
-      </div>
-    </main>
-  `,
+  imports: [CurrencyPipe, RouterLink],
+  templateUrl: './product.page.html',
+  styleUrl: './product.page.css',
 })
 export class ProductPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly catalogApi = inject(CatalogApiService);
+  protected readonly cart = inject(CartService);
+  protected readonly i18n = inject(LocalizationService);
 
   protected readonly selectedImageIndex = signal(0);
 
@@ -184,18 +64,30 @@ export class ProductPageComponent {
 
   protected primaryCtaLabel(status: string): string {
     if (status === 'PreOrder') {
-      return 'Pre-order opens soon';
+      return this.i18n.t('home.preorderNow');
     }
 
     if (status === 'Active') {
-      return 'Catalog only for now';
+      return this.i18n.t('product.addToCart');
     }
 
     if (status === 'Waitlist') {
-      return 'Join waitlist soon';
+      return this.i18n.t('product.joinWaitlist');
     }
 
-    return 'Unavailable for purchase';
+    return this.i18n.t('product.unavailable');
+  }
+
+  protected statusLabel(status: string): string {
+    if (status === 'PreOrder') {
+      return this.i18n.t('common.preorder');
+    }
+
+    if (status === 'Active') {
+      return this.i18n.t('common.inStock');
+    }
+
+    return status === 'Waitlist' ? this.i18n.t('common.waitlist') : status;
   }
 
   constructor() {

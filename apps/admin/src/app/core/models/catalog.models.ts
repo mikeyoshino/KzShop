@@ -12,6 +12,49 @@ export interface ProductCard {
   primaryImageUrl?: string | null;
 }
 
+export enum BusinessErrorCode {
+  DuplicateSlug = 0,
+  DuplicateName = 1,
+  DuplicateSku = 2,
+  CategoryNotFound = 3,
+  StudioNotFound = 4,
+  ProductNotFound = 5,
+  InventoryNotFound = 6,
+  InvalidStatusTransition = 7,
+  PersistenceFailed = 8,
+  StorageUploadFailed = 9,
+  StorageDeleteFailed = 10,
+  StorageCompensationFailed = 11,
+  ValidationFailed = 12,
+}
+
+export interface BusinessError {
+  code: BusinessErrorCode;
+  message: string;
+  status: number;
+}
+
+export function isBusinessError(value: unknown): value is BusinessError {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const candidate = value as Partial<BusinessError>;
+  return (
+    typeof candidate.code === 'number' &&
+    typeof candidate.message === 'string' &&
+    typeof candidate.status === 'number'
+  );
+}
+
+export function formatBusinessError(error: unknown, fallbackMessage: string): string {
+  if (!isBusinessError(error)) {
+    return fallbackMessage;
+  }
+
+  return `[${error.code}] ${error.message}`;
+}
+
 export interface ProductImage {
   id: string;
   publicUrl: string;
@@ -143,4 +186,30 @@ export interface UpsertProductInput {
   editionSize: string;
   estimatedReleaseText: string;
   specifications: CreateProductSpecificationInput[];
+}
+
+export interface AdminDashboardCriticalInventoryItem {
+  productId: string;
+  productName: string;
+  studioName: string;
+  primaryImageUrl?: string | null;
+  availableQuantity: number;
+}
+
+export interface AdminDashboardRecentOrder {
+  orderId: string;
+  orderNumber: string;
+  createdAtUtc: string;
+  customerName: string;
+  totalAmount: number;
+  currency: string;
+  status: string;
+}
+
+export interface AdminDashboardMetricsResponse {
+  periodRevenue: number;
+  recognizedRevenue: number;
+  orderCount: number;
+  criticalInventoryItems: AdminDashboardCriticalInventoryItem[];
+  recentOrders: AdminDashboardRecentOrder[];
 }

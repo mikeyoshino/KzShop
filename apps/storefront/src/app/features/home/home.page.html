@@ -1,0 +1,139 @@
+<main>
+  <section class="hero hero--batman">
+    <img
+      class="hero__background"
+      src="https://placehold.co/1920x1080/111111/444444?text=Cinematic+Batman+Shot"
+      alt="Cinematic Batman Shot"
+    />
+    <div class="hero__overlay"></div>
+
+    <div class="shell-inner hero__inner">
+      @if (heroProduct(); as heroProduct) {
+        <div class="hero__copy">
+          <div class="eyebrow-row">
+            @if (heroProduct.isNew) {
+              <span class="badge badge--accent">{{ i18n.t('home.newDrop') }}</span>
+            }
+            <span class="eyebrow-muted">{{ i18n.t('home.editionSize') }}</span>
+          </div>
+          <h1>
+            {{ heroHeadlineParts(heroProduct.name).primary }}<br />
+            <span>{{ heroHeadlineParts(heroProduct.name).secondary }}</span>
+          </h1>
+          <p>
+            {{ i18n.t('home.heroCopy') }}
+          </p>
+          <a class="button button--light" [routerLink]="['/products', heroProduct.slug]">
+            {{ heroProduct.status === 'PreOrder' ? i18n.t('home.preorderNow') : i18n.t('home.viewFigure') }}
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="ticker-strip" aria-label="Store assurances">
+    <div class="ticker-strip__track">
+      @for (item of tickerItems; track $index) {
+        <span>{{ item }}</span>
+        <span class="ticker-strip__dot">&bull;</span>
+      }
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell-inner">
+      <div class="section-heading collections-heading">
+        <div>
+          <h2>{{ i18n.t('home.shopByUniverse') }}</h2>
+        </div>
+        <a class="section-link" routerLink="/collections/dc-batman">
+          {{ i18n.t('common.viewAll') }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <div class="franchise-grid">
+        @for (collection of collections(); track collection.key) {
+          <a class="franchise-card" [routerLink]="collection.route">
+            <img [src]="collection.imageUrl" [alt]="collection.label" />
+            <span class="franchise-card__shade"></span>
+            <span class="franchise-card__copy">
+              <strong>{{ collection.title }}</strong>
+              <i></i>
+            </span>
+          </a>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--muted">
+    <div class="shell-inner">
+      <div class="section-heading allocations-heading">
+        <div>
+          <h2>{{ i18n.t('home.latestAllocations') }}</h2>
+          <p>{{ i18n.t('home.latestCopy') }}</p>
+        </div>
+        <a class="section-link" routerLink="/collections/dc-batman">
+          {{ i18n.t('common.shopNew') }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <div class="product-grid">
+        @for (product of featuredProducts(); track product.id) {
+          <article class="product-card" [attr.data-tone]="product.categorySlug">
+            <a class="product-card__media" [routerLink]="['/products', product.slug]">
+              <img [src]="product.primaryImageUrl" [alt]="product.name" />
+              <div class="product-card__badges">
+                @if (product.isNew) {
+                  <span class="badge badge--dark">{{ i18n.t('common.new') }}</span>
+                }
+                <span class="badge" [class.badge--accent]="product.status === 'PreOrder'">
+                  {{ statusLabel(product.status) }}
+                </span>
+              </div>
+            </a>
+            <div class="product-card__meta">
+              <p>{{ product.studioName }}</p>
+              <a class="product-card__name" [routerLink]="['/products', product.slug]">
+                {{ product.name }}
+              </a>
+              <div class="product-card__price-row">
+                <strong>{{ product.priceAmount | currency: product.currency : 'symbol' : '1.0-0' }}</strong>
+                <span>{{ product.scale }}</span>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--editorial">
+    <div class="shell-inner editorial-grid">
+      <div class="editorial-copy">
+        <p class="section-kicker">{{ i18n.t('home.archiveStandard') }}</p>
+        <h2>{{ i18n.t('home.editorialTitle') }}</h2>
+        <p>{{ i18n.t('home.editorialCopy') }}</p>
+        <div class="editorial-metrics">
+          <div>
+            <strong>{{ featuredCount() }}</strong>
+            <span>{{ i18n.t('home.featuredDrops') }}</span>
+          </div>
+          <div>
+            <strong>3</strong>
+            <span>{{ i18n.t('home.studios') }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="editorial-panel">
+        <div class="editorial-panel__frame">
+          <div class="editorial-panel__card">
+            <span>{{ i18n.t('home.craftsmanship') }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

@@ -25,7 +25,9 @@ public class AdminProductImagesController : AdminApiControllerBase
     {
         if (request.File is null || request.File.Length == 0)
         {
-            return BadRequest(new { code = "ValidationFailed", message = "Image file is required." });
+            return BadRequest(ToErrorPayload(
+                Ecommerce.Application.Common.Models.BusinessErrorCode.ValidationFailed,
+                "Image file is required."));
         }
 
         await using var stream = request.File.OpenReadStream();

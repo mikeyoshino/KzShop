@@ -1,0 +1,98 @@
+<main class="collection-page">
+  <div class="shell-inner">
+    <header class="collection-page__header">
+      <div class="breadcrumb-row">
+        <a routerLink="/">{{ i18n.t('common.home') }}</a>
+        <span>/</span>
+        <span>{{ collectionLabel() }}</span>
+      </div>
+      <h1 class="page-title">{{ collectionTitle() }}</h1>
+      <p class="page-subtitle">{{ products().items.length }} {{ i18n.t('collection.itemsFound') }}</p>
+    </header>
+
+    <div class="collection-layout">
+      <aside class="filter-panel">
+        <div class="filter-panel__sticky">
+          <div class="filter-group">
+            <h2>
+              {{ i18n.t('collection.status') }}
+              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            </h2>
+            <div class="filter-list">
+              @for (status of statusFilterKeys; track status) {
+                <label class="filter-item">
+                  <input type="checkbox" [checked]="status === 'common.preorder'" />
+                  <span>{{ i18n.t(status) }}</span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <h2>
+              {{ i18n.t('collection.scale') }}
+              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            </h2>
+            <div class="filter-list">
+              @for (scale of scaleFilters; track scale) {
+                <label class="filter-item">
+                  <input type="checkbox" />
+                  <span>{{ scale }}</span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <button type="button">{{ i18n.t('collection.applyFilters') }}</button>
+        </div>
+      </aside>
+
+      <section class="collection-results">
+        <div class="collection-sort">
+          <span>{{ i18n.t('collection.showingAll') }}</span>
+          <select aria-label="Sort products">
+            <option>{{ i18n.t('collection.sortNewest') }}</option>
+            <option>{{ i18n.t('collection.priceHighLow') }}</option>
+            <option>{{ i18n.t('collection.priceLowHigh') }}</option>
+          </select>
+        </div>
+
+        @if (products().items.length > 0) {
+          <div class="collection-grid">
+            @for (product of products().items; track product.id) {
+              <article class="collection-card">
+                <a class="collection-card__media" [routerLink]="['/products', product.slug]">
+                  <img [src]="product.primaryImageUrl" [alt]="product.name" />
+                  <div class="product-card__badges">
+                    @if (product.isNew) {
+                      <span class="badge badge--dark">{{ i18n.t('common.new') }}</span>
+                    }
+                    <span class="badge" [class.badge--accent]="product.status === 'PreOrder'">
+                      {{ statusLabel(product.status) }}
+                    </span>
+                  </div>
+                  <span class="collection-card__quick">{{ i18n.t('collection.viewDetails') }}</span>
+                </a>
+
+                <div class="collection-card__meta">
+                  <div>
+                    <span>{{ product.studioName }}</span>
+                    <span>{{ product.scale }}</span>
+                  </div>
+                  <a [routerLink]="['/products', product.slug]">{{ product.name }}</a>
+                  <strong>{{ product.priceAmount | currency: product.currency : 'symbol' : '1.0-0' }}</strong>
+                </div>
+              </article>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <i class="fa-solid fa-box-open" aria-hidden="true"></i>
+            <h2>{{ i18n.t('collection.noItems') }}</h2>
+            <p>{{ i18n.t('collection.noItemsCopy') }}</p>
+          </div>
+        }
+      </section>
+    </div>
+  </div>
+</main>

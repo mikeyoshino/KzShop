@@ -1,0 +1,129 @@
+<main class="product-page">
+  <div class="shell-inner">
+    @if (product(); as product) {
+      <div class="breadcrumb-row">
+        <a routerLink="/">{{ i18n.t('common.home') }}</a>
+        <span>/</span>
+        <a [routerLink]="['/collections', product.categorySlug]">{{ product.categorySlug }}</a>
+        <span>/</span>
+        <span>{{ product.name }}</span>
+      </div>
+
+      <section class="product-layout">
+        <div class="product-gallery">
+          <div class="product-gallery__thumbs">
+            @for (image of product.images; track image.id; let index = $index) {
+              <button
+                type="button"
+                [class.is-active]="selectedImageIndex() === index"
+                (click)="selectedImageIndex.set(index)"
+              >
+                <img [src]="image.publicUrl" [alt]="image.altText || product.name" />
+              </button>
+            }
+          </div>
+
+          <div class="product-gallery__main">
+            <img [src]="activeImage().publicUrl" [alt]="activeImage().altText || product.name" />
+            <div class="product-card__badges">
+              <span class="badge" [class.badge--accent]="product.status === 'PreOrder'">
+                {{ statusLabel(product.status) }}
+              </span>
+              @if (product.isNew) {
+                <span class="badge badge--dark">New</span>
+              }
+            </div>
+          </div>
+
+          <div class="product-gallery__mobile">
+            @for (image of product.images; track image.id; let index = $index) {
+              <button type="button" (click)="selectedImageIndex.set(index)">
+                <img [src]="image.publicUrl" [alt]="image.altText || product.name" />
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="product-details product-details--sticky">
+          <div class="product-details__header">
+            <div>
+              <span>{{ product.studioName }}</span>
+              <span>ID: {{ product.id.slice(0, 4) }}</span>
+            </div>
+            <h1 class="page-title">{{ product.name }}</h1>
+            <div class="product-price-row">
+              <strong>{{ product.priceAmount | currency: product.currency : 'symbol' : '1.0-0' }}</strong>
+              @if (product.status === 'PreOrder') {
+                <span>{{ i18n.t('product.deposit') }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="product-copy">
+            <p>{{ product.description || product.shortDescription }}</p>
+          </div>
+
+          <div class="product-purchase">
+            <button
+              type="button"
+              class="button"
+              [class.button--accent]="product.status === 'PreOrder'"
+              [class.button--dark]="product.status !== 'PreOrder' && product.status !== 'Waitlist'"
+              [class.button--disabled]="product.status === 'Waitlist'"
+              [disabled]="product.status === 'Waitlist'"
+              (click)="cart.addProduct(product)"
+            >
+              {{ primaryCtaLabel(product.status) }}
+              @if (product.status !== 'Waitlist') {
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+              }
+            </button>
+
+            <div class="product-flags">
+              <span><i class="fa-solid fa-truck-fast" aria-hidden="true"></i> {{ i18n.t('product.secureShip') }}</span>
+              <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> {{ i18n.t('product.authentic') }}</span>
+            </div>
+          </div>
+
+          <section class="spec-panel">
+            <h2>{{ i18n.t('product.specifications') }}</h2>
+            <div class="spec-list">
+              <div class="spec-row">
+                <span>{{ i18n.t('product.franchise') }}</span>
+                <strong>{{ collectionTitle() }}</strong>
+              </div>
+              <div class="spec-row">
+                <span>{{ i18n.t('product.scale') }}</span>
+                <strong>{{ product.scale }}</strong>
+              </div>
+              <div class="spec-row">
+                <span>{{ i18n.t('product.materials') }}</span>
+                <strong>{{ product.materials }}</strong>
+              </div>
+              <div class="spec-row">
+                <span>{{ i18n.t('product.dimensions') }}</span>
+                <strong>{{ product.dimensionsText }}</strong>
+              </div>
+              <div class="spec-row">
+                <span>{{ i18n.t('product.release') }}</span>
+                <strong>{{ product.estimatedReleaseText }}</strong>
+              </div>
+              @for (specification of product.specifications; track specification.label + specification.sortOrder) {
+                <div class="spec-row">
+                  <span>{{ specification.label }}</span>
+                  <strong>{{ specification.value }}</strong>
+                </div>
+              }
+            </div>
+          </section>
+        </div>
+      </section>
+    } @else {
+      <div class="empty-state">
+        <h1 class="page-title">{{ i18n.t('product.unavailable') }}</h1>
+        <p>{{ i18n.t('product.unavailableCopy') }}</p>
+        <a class="button button--dark" routerLink="/collections/dc-batman">{{ i18n.t('product.browseBatman') }}</a>
+      </div>
+    }
+  </div>
+</main>

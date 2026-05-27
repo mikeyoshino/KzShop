@@ -1,0 +1,82 @@
+<main class="cart-page">
+  <div class="shell-inner cart-page__inner">
+    <h1 class="page-title">{{ i18n.t('cart.title') }}</h1>
+    <p class="cart-page__subtitle">{{ i18n.t('cart.subtitle') }}</p>
+
+    @if (cart.items().length === 0) {
+      <div class="cart-empty">
+        <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+        <h2>{{ i18n.t('cart.emptyTitle') }}</h2>
+        <p>{{ i18n.t('cart.emptyCopy') }}</p>
+        <a class="button button--dark" routerLink="/">{{ i18n.t('cart.return') }}</a>
+      </div>
+    } @else {
+      <div class="cart-layout">
+        <section class="cart-items" [attr.aria-label]="i18n.t('cart.itemsLabel')">
+          @for (item of cart.items(); track item.productId) {
+            <article class="cart-item">
+              <button
+                type="button"
+                class="cart-item__remove"
+                [attr.aria-label]="i18n.t('cart.remove') + ' ' + item.name"
+                (click)="cart.remove(item.productId)"
+              >
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+              </button>
+
+              <a class="cart-item__media" [routerLink]="['/products', item.slug]">
+                <img [src]="item.imageUrl" [alt]="item.name" />
+              </a>
+
+              <div class="cart-item__content">
+                <span>{{ item.studioName }} | {{ item.scale }}</span>
+                <a [routerLink]="['/products', item.slug]">{{ item.name }}</a>
+                <small [class.is-preorder]="item.status === 'PreOrder'">{{ statusLabel(item.status) }}</small>
+
+                <div class="cart-item__bottom">
+                  <div class="cart-quantity" [attr.aria-label]="i18n.t('cart.quantity')">
+                    <button type="button" (click)="cart.decrement(item.productId)">-</button>
+                    <span>{{ item.quantity }}</span>
+                    <button type="button" (click)="cart.increment(item.productId)">+</button>
+                  </div>
+                  <strong>{{ item.priceAmount * item.quantity | currency: item.currency : 'symbol' : '1.0-0' }}</strong>
+                </div>
+              </div>
+            </article>
+          }
+        </section>
+
+        <aside class="order-summary">
+          <h2>{{ i18n.t('summary.title') }}</h2>
+          <div class="order-summary__rows">
+            <div>
+              <span>{{ i18n.t('summary.subtotal') }}</span>
+              <strong>{{ cart.subtotal() | currency: cart.currency() : 'symbol' : '1.0-0' }}</strong>
+            </div>
+            <div>
+              <span>{{ i18n.t('summary.shipping') }}</span>
+              <em>{{ i18n.t('summary.calculated') }}</em>
+            </div>
+            <div>
+              <span>{{ i18n.t('summary.taxes') }}</span>
+              <em>{{ i18n.t('summary.calculated') }}</em>
+            </div>
+          </div>
+
+          <div class="order-summary__total">
+            <span>{{ i18n.t('summary.totalEstimated') }}</span>
+            <strong>{{ cart.subtotal() | currency: cart.currency() : 'symbol' : '1.0-0' }}</strong>
+          </div>
+
+          <a class="button button--accent" routerLink="/checkout">
+            {{ i18n.t('summary.secureCheckout') }} <i class="fa-solid fa-lock" aria-hidden="true"></i>
+          </a>
+
+          <p>
+            {{ i18n.t('summary.terms') }}
+          </p>
+        </aside>
+      </div>
+    }
+  </div>
+</main>
